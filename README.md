@@ -1,5 +1,7 @@
 # ☂️ Umbrella Fund
 
+![Umbrella-Logo](https://github.com/noahjoeris/umbrella-fund/blob/main/logo.webp)
+
 Welcome to the Umbrella Fund, a decentralized investment fund built on Ethereum blockchain technology. We leverage the power of Solidity and smart contracts to offer a secure and transparent way to invest in a diversified pool of ERC20 tokens.
 
 ## Project Overview
