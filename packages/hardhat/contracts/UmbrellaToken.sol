@@ -15,7 +15,9 @@ contract UmbrellaToken is ERC20, ERC20Permit, ERC20Votes, AccessControl {
     }
 
     // admin grant minting right to address
-    function grantMint() {}
+    function grantMint(address to) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        _grantRole(MINTER_ROLE, to);
+    }
 
     // 1 ETH = 1,000,000 UMBRL. Address with MINTER_ROLE allowed to mint and become instant millionaire
     function mint(address to, uint256 amount) public onlyRole(MINTER_ROLE) {
@@ -24,7 +26,6 @@ contract UmbrellaToken is ERC20, ERC20Permit, ERC20Votes, AccessControl {
 
     // Must own UMBRL. Burn to get ETH back. (Need to calculate new UMBRL value.)
     function burn(address to, uint256 amount) public payable {}
-
 
     function getTokenBalanceAtBlock(address account, uint256 targetBlockNumber) public view returns (uint256) {
         return getPastVotes(account, targetBlockNumber);
