@@ -27,10 +27,6 @@ contract UmbrellaToken is ERC20, ERC20Permit, ERC20Votes, AccessControl {
     // Must own UMBRL. Burn to get ETH back. (Need to calculate new UMBRL value.)
     function burn(address to, uint256 amount) public payable {}
 
-    function getTokenBalanceAtBlock(address account, uint256 targetBlockNumber) public view returns (uint256) {
-        return getPastVotes(account, targetBlockNumber);
-    }
-
     // The following functions are overrides required by Solidity.
 
     function _update(address from, address to, uint256 value)
