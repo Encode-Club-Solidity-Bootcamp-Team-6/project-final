@@ -1,5 +1,6 @@
 "use client";
 
+import UmbrellaFund from "./_components/UmbrellaFund";
 import UmbrellaSwap from "./_components/UmbrellaSwap";
 import UmbrellaVoting from "./_components/UmbrellaVoting";
 import type { NextPage } from "next";
@@ -13,8 +14,11 @@ const Home: NextPage = () => {
       <div className="flex flex-col justify-center items-center space-x-2 mt-10">
         <h1 className="text-[40px]">Umbrella Fund</h1>
         <p>Invest in multiple ERC-20 tokens and build your portfolio.</p>
-        <UmbrellaSwap address={connectedAddress} />
-        <UmbrellaVoting address={connectedAddress} />
+        <div className="grid grid-cols-3 grid-rows-2 gap-4">
+          <UmbrellaFund address={connectedAddress} />
+          <UmbrellaSwap address={connectedAddress} />
+          <UmbrellaVoting address={connectedAddress} />
+        </div>
       </div>
     </>
   );
