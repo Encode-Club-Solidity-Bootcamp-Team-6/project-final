@@ -16,15 +16,15 @@ describe("UmbrellaToken", function () {
         // Deploy the contract using the first signer which is by default the deployer
         const tokenFactory = await ethers.getContractFactory("UmbrellaToken", owner);
         umbrellaToken = await tokenFactory.deploy();
-        // No need to call .deployed() after deploy, it's already considered deployed if no errors
+
     });
 
     describe("Deployment", function () {
-        it("Should set the right owner", async function () {
-            // Adjust depending on your contract's features; if it has an owner() function or similar
-            // expect(await umbrellaToken.owner()).to.equal(await owner.getAddress());
+        it("Should set the right default admin", async function () {
+            const defaultAdminRole = await umbrellaToken.DEFAULT_ADMIN_ROLE();
+            const ownerAddress = await owner.getAddress();
+            expect(await umbrellaToken.hasRole(defaultAdminRole, ownerAddress)).to.be.true;
         });
-
         it("Initial total supply should be zero", async function () {
             expect(await umbrellaToken.totalSupply()).to.equal(0);
         });

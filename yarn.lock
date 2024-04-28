@@ -7125,7 +7125,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ethers@npm:^6.10.0":
+"ethers@npm:^6.10.0, ethers@npm:^6.12.0":
   version: 6.12.0
   resolution: "ethers@npm:6.12.0"
   dependencies:
@@ -12163,10 +12163,13 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "se-2@workspace:."
   dependencies:
+    "@nomicfoundation/hardhat-ethers": ^3.0.5
     "@openzeppelin/contracts": ^5.0.2
     dotenv: ^16.4.5
+    ethers: ^6.12.0
     husky: ^8.0.1
     lint-staged: ^13.0.3
+    ts-node: ^10.9.2
   languageName: unknown
   linkType: soft
 
@@ -13353,7 +13356,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ts-node@npm:^10.9.1":
+"ts-node@npm:^10.9.1, ts-node@npm:^10.9.2":
   version: 10.9.2
   resolution: "ts-node@npm:10.9.2"
   dependencies:
