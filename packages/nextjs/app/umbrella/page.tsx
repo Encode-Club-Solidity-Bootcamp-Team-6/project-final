@@ -13,9 +13,10 @@ const Home: NextPage = () => {
   return (
     <>
       <div className="flex flex-col justify-center items-center space-x-2 mt-10">
-        <h1 className="text-[40px]">Umbrella Fund</h1>
-        <p>Invest in multiple ERC-20 tokens and build your portfolio.</p>
-        <div className="flex flex-wrap flex-col gap-6 justify-center">
+        <p className="font-bold text-4xl">Umbrella Fund</p>
+        <span>Invest in multiple ERC-20 tokens and build your portfolio.</span>
+
+        <div className="flex flex-wrap flex-col mt-6 gap-6 justify-center">
           <div className="grid grid-cols-2 gap-10 justify-items-center">
             <PoolValue address={connectedAddress} />
             <PoolTokens address={connectedAddress} />
