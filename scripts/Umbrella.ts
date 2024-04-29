@@ -85,9 +85,11 @@ async function main() {
 
     // Setting chainlink pricefeeds for assets to buy
     const setTx1 = await deployer.writeContract({address: fundContractAddress, abi: UmbrellaFund.abi, functionName: 'setCLInitValues', args: [0, btcFeed, "BTC"],});
+    const hash4 = await publicClient.waitForTransactionReceipt({ hash: setTx1 });
     const setTx2 = await deployer.writeContract({address: fundContractAddress, abi: UmbrellaFund.abi, functionName: 'setCLInitValues', args: [1, linkFeed, "LINK"],});
+    const hash5 = await publicClient.waitForTransactionReceipt({ hash: setTx2 });
     const setTx3 = await deployer.writeContract({address: fundContractAddress, abi: UmbrellaFund.abi, functionName: 'setCLInitValues', args: [2, eurFeed, "EUR"],});
-    const hash4 = await publicClient.waitForTransactionReceipt({ hash: setTx3 });
+    const hash6 = await publicClient.waitForTransactionReceipt({ hash: setTx3 });
     
     const out0 = await publicClient.readContract({address: fundContractAddress, abi: UmbrellaFund.abi, functionName: 'getAsset', args: [0],});
     const out1 = await publicClient.readContract({address: fundContractAddress, abi: UmbrellaFund.abi, functionName: 'getAsset', args: [1],});
@@ -106,11 +108,11 @@ async function main() {
 
     // Purchasing first two asset
     const buyTx1 = await deployer.writeContract({address: fundContractAddress, abi: UmbrellaFund.abi, functionName: 'buyAsset', args: [parseEther(".00001"), 2],});
-    const hash5 = await publicClient.waitForTransactionReceipt({ hash: buyTx1 });
+    const hash7 = await publicClient.waitForTransactionReceipt({ hash: buyTx1 });
     const buyTx2 = await deployer.writeContract({address: fundContractAddress, abi: UmbrellaFund.abi, functionName: 'buyAsset', args: [parseEther(".00003"), 0],});
-    const hash6 = await publicClient.waitForTransactionReceipt({ hash: buyTx2 });
-    const out2buy = await publicClient.readContract({address: fundContractAddress, abi: UmbrellaFund.abi, functionName: 'getAsset', args: [2],});
+    const hash8 = await publicClient.waitForTransactionReceipt({ hash: buyTx2 });
     const out0buy = await publicClient.readContract({address: fundContractAddress, abi: UmbrellaFund.abi, functionName: 'getAsset', args: [0],});
+    const out2buy = await publicClient.readContract({address: fundContractAddress, abi: UmbrellaFund.abi, functionName: 'getAsset', args: [2],});
     console.log("Asset struct index:0 has contents: ", out0buy, "...\n"); 
     console.log("Asset struct index:2 has contents: ", out2buy, "...\n");
 
