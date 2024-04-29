@@ -1,5 +1,6 @@
 "use client";
 
+import PoolTokens from "./_components/PoolTokens";
 import PoolValue from "./_components/PoolValue";
 import UmbrellaSwap from "./_components/UmbrellaSwap";
 import UmbrellaVoting from "./_components/UmbrellaVoting";
@@ -18,6 +19,7 @@ const Home: NextPage = () => {
           <UmbrellaSwap address={connectedAddress} />
           <UmbrellaVoting address={connectedAddress} />
           <PoolValue address={connectedAddress} />
+          <PoolTokens address={connectedAddress} />
         </div>
       </div>
     </>

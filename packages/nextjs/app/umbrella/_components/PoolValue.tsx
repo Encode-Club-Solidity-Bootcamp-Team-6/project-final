@@ -11,7 +11,7 @@ type PoolValueProps = {
  */
 const PoolValue: React.FC<PoolValueProps> = ({ address }) => {
   return (
-    <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center min-w-64 max-w-xs max-h-72 rounded-3xl">
+    <div className="flex flex-col bg-base-100 px-5 py-5 text-center items-center min-w-64 max-w-xs max-h-72 rounded-3xl">
       <CurrencyDollarIcon className="h-8 w-8 fill-secondary" />
       <p className="text-xl font-bold">Pool Value</p>
       <div>
