@@ -14,9 +14,9 @@ const PoolValue: React.FC<PoolValueProps> = ({ address }) => {
     <div className="flex flex-col bg-base-100 px-5 py-5 text-center items-center min-w-64 max-w-xs max-h-72 rounded-3xl">
       <CurrencyDollarIcon className="h-8 w-8 fill-secondary" />
       <p className="text-xl font-bold">Pool Value</p>
-      <div>
-        <p className="text-lg">0.00 ETH</p>
-        <p className="text-lg">0.00 USD</p>
+      <div className="flex flex-col items-start gap-2">
+        <span className="text-lg">0.00 ETH</span>
+        <span className="text-lg">0.00 USD</span>
       </div>
     </div>
   );
