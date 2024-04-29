@@ -36,18 +36,22 @@ const UmbrellaVoting: React.FC<UmbrellaVotingProps> = ({ address }) => {
   ];
 
   return (
-    <div className="bg-blue-900 p-10 rounded-xl col-start-2 col-end-4 row-start-1 row-end-3 flex flex-col">
-      <h2 className="text-xl">Proposals & Voting</h2>
-      <p className="text-sm">Vote on proposals that you prefer.</p>
-      <div className="mt-8 flex flex-col gap-4 bg-slate-800 rounded-xl p-4 flex-1">
-        <h3>Proposals</h3>
-        <ul className="flex flex-col justify-center items-center gap-2 overflow-y-auto">
-          {proposals.map((proposal, id) => (
-            <li key={id} className={`${id % 2 == 0 ? "bg-slate-600" : "bg-slate-700"} w-full p-2`}>
-              <Proposal key={id} proposal={proposal} />
-            </li>
-          ))}
-        </ul>
+    <div className="bg-blue-900 p-10 rounded-xl col-start-2 col-end-4 row-start-2 row-end-3 flex flex-col">
+      <h2 className="text-xl">
+        Proposals & Voting <span className="d italic">(coming soon)</span>
+      </h2>
+      <div className="blur-sm">
+        <p className="text-sm">Vote on proposals that you prefer.</p>
+        <div className="mt-8 flex flex-col gap-4 bg-slate-800 rounded-xl p-4 flex-1">
+          <h3>Proposals</h3>
+          <ul className="flex flex-col justify-center items-center gap-2 overflow-y-auto">
+            {proposals.map((proposal, id) => (
+              <li key={id} className={`${id % 2 == 0 ? "bg-slate-600" : "bg-slate-700"} w-full p-2`}>
+                <Proposal key={id} proposal={proposal} />
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
   );
