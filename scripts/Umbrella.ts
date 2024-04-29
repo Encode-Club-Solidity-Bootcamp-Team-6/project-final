@@ -12,113 +12,115 @@ const MAXUINT256 = 1157920892373161954235709850086879078532699846656405640394575
 const btcFeed = "0x5fb1616F78dA7aFC9FF79e0371741a747D2a7F22";
 const linkFeed = "0x42585eD362B3f1BCa95c640FdFf35Ef899212734";
 const eurFeed = "0x1a81afB8146aeFfCFc5E50e8479e826E7D55b910";
-
+const peterAddress = "0xe0A28485ce1b81df501e97c9370C9dc69B97432D";
 const MINT_VALUE = parseEther("100");
-// const PROPOSALS = ["Vanilla", "Chocolate", "Strawberry"];
-// TODO change toString to formatEther
 
 async function main() {
 
     // Addresses
-    const peterAddress = "0xe0A28485ce1b81df501e97c9370C9dc69B97432D";
+    
     // const fundContractAddress = "0x7ce88679011efa93f5f85a8208c0942b27e3ee72";
     
-    // Initialization of token contract
+    // // Initialization of token contract
     const account = privateKeyToAccount(`0x${deployerPrivateKey}`);
     const publicClient = await createPublicClient({chain: sepolia, transport: http(`https://eth-sepolia.g.alchemy.com/v2/${providerApiKey}`),});
     const deployer = createWalletClient({account, chain: sepolia, transport: http(`https://eth-sepolia.g.alchemy.com/v2/${providerApiKey}`),});
-    console.log("Deployer address:", deployer.account.address);
-    const balance = await publicClient.getBalance({address: deployer.account.address,});
-    console.log("Deployer balance:",formatEther(balance),deployer.chain.nativeCurrency.symbol);
+    console.log("Got publicClient and deployer ...\n");
+
+    // // Check peter's balance before deployment to sepolia
+    // const balance = await publicClient.getBalance({address: deployer.account.address,});
+    // console.log(`Before deployment, deployer address is: ${deployer.account.address} and deployer balance is: ${formatEther(balance)} ${deployer.chain.nativeCurrency.symbol}...\n`);
 
     // // UmbrellaToken deployment
-    // console.log("\nDeploying UmbrellaToken contract");
+    // console.log("Deploying UmbrellaToken contract ...\n");
     // const hash = await deployer.deployContract({abi: UmbrellaToken.abi, bytecode: UmbrellaToken.bytecode as `0x${string}`, args: ["UmbrellaToken","UMB"]}); // don't include args if empty
-    // console.log("Transaction hash:", hash);
-    // console.log("Waiting for confirmations...");
+    // //console.log("Transaction hash:", hash);
+    // // console.log("Waiting for confirmations...");
     // const receipt = await publicClient.waitForTransactionReceipt({ hash: hash });
     // const tokenContractAddress = receipt.contractAddress;
-    // console.log("Token contract deployed to:", tokenContractAddress);
+    // console.log(`UmbrellaToken contract deployed to: ${tokenContractAddress}...\n`);
     
     // // Mint tokens to deployer
     // const mintTx = await deployer.writeContract({address: tokenContractAddress, abi: UmbrellaToken.abi, functionName: 'mint', args: [peterAddress, MINT_VALUE],});
     // await publicClient.waitForTransactionReceipt({ hash: mintTx });
-    // console.log("Transaction hash: ", mintTx);
-    
-    // // Check peter's balance
-    // const balancePeter = await publicClient.readContract({address: tokenContractAddress, abi: UmbrellaToken.abi, functionName: 'balanceOf', args: [peterAddress],});
-    // console.log(`Account peter ${peterAddress} has ${formatEther(balancePeter)} units of MyToken\n`);
+    // // console.log("Transaction hash: ", mintTx);
+    // console.log(`UmbrellaToken smart contract minted tokens of : ${MINT_VALUE}...\n`);
+
+    // // Check peter's balance after token deployment
+    // const balance2 = await publicClient.readContract({address: tokenContractAddress, abi: UmbrellaToken.abi, functionName: 'balanceOf', args: [peterAddress],});
+    // console.log(`Account: ${peterAddress} has UmbrellaTokens: ${formatEther(balance2)}...\n`);
 
     // // Approve voting power from deployer to smart contract
     // const appTx = await deployer.writeContract({address: tokenContractAddress, abi: UmbrellaToken.abi, functionName: 'approve', args: [tokenContractAddress, MAXUINT256],});
     // await publicClient.waitForTransactionReceipt({ hash: appTx });
+    // console.log(`Account: ${peterAddress} has approved the MAX UNITS (${formatEther(MAXUINT256)}) of voting power to the token smart contract...\n`);
+
+    // // Initialization of fund contract  
+    // const blockNumber = await publicClient.getBlockNumber();
+    // console.log(`Current blocknumber is: ${blockNumber} ...\n`);
     
-    // console.log(`Account peter ${peterAddress} has approved the max units of voting power to the token smart contract\n`);
-
-    // Initialization of fund contract
-    console.log("Deployer address:", deployer.account.address);
-    const balance2 = await publicClient.getBalance({address: deployer.account.address,});
-    console.log("Deployer balance:",formatEther(balance2), deployer.chain.nativeCurrency.symbol);
-    const blockNumber = await publicClient.getBlockNumber();
-    console.log("Blocknumber is: ", blockNumber);
-    // console.log("tokenContractAddress is: ", tokenContractAddress);
-
-    
-
-    // Deploying the second contract
-    console.log("\nDeploying UmbrellaFund contract");
+    // Deploying the UmbrellaFund contract
+    console.log("\nDeploying UmbrellaFund contract...\n");
     const hash2 = await deployer.deployContract({abi: UmbrellaFund.abi, bytecode: UmbrellaFund.bytecode as `0x${string}`, args: ["UmbrellaToken","UMB",parseEther(".00001")]}); // don't include args if empty
-    console.log("Transaction hash2:", hash2);
-    console.log("Waiting for confirmations...");
+    //console.log("Transaction hash2:", hash2);
+    //console.log("Waiting for confirmations...");
     const receipt2 = await publicClient.waitForTransactionReceipt({ hash: hash2 }); // something is wrong here
     const fundContractAddress = receipt2.contractAddress;
-    console.log("Fund contract deployed to:", fundContractAddress);
+    console.log(`UmbrellaFund smart contract deployed to: ${fundContractAddress}...\n`);
+    
     const balance3 = await publicClient.getBalance({address: fundContractAddress,});
-    console.log("Fund contract balance:",formatEther(balance3), deployer.chain.nativeCurrency.symbol);
-
+    console.log(`UmbrellaFund smart contract has balance: ${formatEther(balance3)} ${deployer.chain.nativeCurrency.symbol}...\n`);
 
     // // Purchasing tokens
     const purchTx = await deployer.writeContract({address: fundContractAddress, abi: UmbrellaFund.abi, functionName: 'deposit', args: [], value: parseEther(".0001"),});
     const hash3 = await publicClient.waitForTransactionReceipt({ hash: purchTx });
-    const balancePeter = await publicClient.readContract({address: fundContractAddress, abi: UmbrellaFund.abi, functionName: 'getTokenShare', args: [peterAddress],});
-    console.log("Peter purchased tokens in amount: ", formatEther(balancePeter));
-    const balance4 = await publicClient.getBalance({address: fundContractAddress,});
-    console.log("Fund contract balance:",formatEther(balance4), deployer.chain.nativeCurrency.symbol);
+    const balance4 = await publicClient.readContract({address: fundContractAddress, abi: UmbrellaFund.abi, functionName: 'getTokenShare', args: [peterAddress],});
+    console.log(`Account: ${peterAddress} purchased tokens in amount: ${formatEther(balance4)}...\n`);
+    
+    const balance5 = await publicClient.getBalance({address: fundContractAddress,});
+    console.log(`UmbrellaFund smart contract now has balance: ${formatEther(balance5)} ${deployer.chain.nativeCurrency.symbol}...\n`);
+    
     const totSupp = await publicClient.readContract({address: fundContractAddress, abi: UmbrellaFund.abi, functionName: 'getTotalSupply', args: [],});
-    console.log("Total Supply is: ", formatEther(totSupp));
+    console.log(`UmbrellaFund token total Supply is: ${formatEther(totSupp)}...\n`);
 
-    // Setting assets to buy
+    // Setting chainlink pricefeeds for assets to buy
     const setTx1 = await deployer.writeContract({address: fundContractAddress, abi: UmbrellaFund.abi, functionName: 'setCLInitValues', args: [0, btcFeed, "BTC"],});
     const setTx2 = await deployer.writeContract({address: fundContractAddress, abi: UmbrellaFund.abi, functionName: 'setCLInitValues', args: [1, linkFeed, "LINK"],});
     const setTx3 = await deployer.writeContract({address: fundContractAddress, abi: UmbrellaFund.abi, functionName: 'setCLInitValues', args: [2, eurFeed, "EUR"],});
     const hash4 = await publicClient.waitForTransactionReceipt({ hash: setTx3 });
     
-
     const out0 = await publicClient.readContract({address: fundContractAddress, abi: UmbrellaFund.abi, functionName: 'getAsset', args: [0],});
     const out1 = await publicClient.readContract({address: fundContractAddress, abi: UmbrellaFund.abi, functionName: 'getAsset', args: [1],});
-    console.log("Asset of index: 0 has priceFeed: ", out0);
-    console.log("Asset of index: 1 has priceFeed: ", out1);
-    
-    
-    const priceTx1 = await publicClient.readContract({address: fundContractAddress, abi: UmbrellaFund.abi, functionName: 'getCLPrice', args: [0],});
-    console.log("CL price of BTC/ETH is: ", formatEther(priceTx1));
-    const priceTx2 = await publicClient.readContract({address: fundContractAddress, abi: UmbrellaFund.abi, functionName: 'getCLPrice', args: [1],});
-    console.log("CL price of LINK/ETH is: ", formatEther(priceTx2));
-    const priceTx3 = await publicClient.readContract({address: fundContractAddress, abi: UmbrellaFund.abi, functionName: 'getCLPrice', args: [2],});
-    console.log("CL price of EUR/USD is: ", formatEther(priceTx3));
-
-    // Purchasing first asset
-    const buyTx = await deployer.writeContract({address: fundContractAddress, abi: UmbrellaFund.abi, functionName: 'buyAsset', args: [parseEther(".0001"), 2],});
-    const hash5 = await publicClient.waitForTransactionReceipt({ hash: buyTx });
     const out2 = await publicClient.readContract({address: fundContractAddress, abi: UmbrellaFund.abi, functionName: 'getAsset', args: [2],});
-    console.log("Asset of index: 2 has priceFeed: ", out2);
+    console.log("Asset struct index: 0 has contents: ", out0," ...\n");
+    console.log("Asset struct index: 1 has contents: ", out1," ...\n");
+    console.log("Asset struct index: 2 has contents: ", out2," ...\n");
+    
+    // Calling Chainlink pricefeeds
+    const priceTx1 = await publicClient.readContract({address: fundContractAddress, abi: UmbrellaFund.abi, functionName: 'getCLPrice', args: [0],});
+    console.log(`Chainlink price of BTC/ETH is: ${formatEther(priceTx1)}...\n`);
+    const priceTx2 = await publicClient.readContract({address: fundContractAddress, abi: UmbrellaFund.abi, functionName: 'getCLPrice', args: [1],});
+    console.log(`Chainlink price of LINK/ETH is: ${formatEther(priceTx2)}...\n`);
+    const priceTx3 = await publicClient.readContract({address: fundContractAddress, abi: UmbrellaFund.abi, functionName: 'getCLPrice', args: [2],});
+    console.log(`Chainlink price of EUR/USD is: ${formatEther(priceTx3)}...\n`);
 
-    // const navInit = await publicClient.readContract({address: fundContractAddress, abi: UmbrellaFund.abi, functionName: 'calculateNAVInitial', args: [],});
-    // const navCurr = await publicClient.readContract({address: fundContractAddress, abi: UmbrellaFund.abi, functionName: 'calculateNAVCurrent', args: [],});
-    // const ret = await publicClient.readContract({address: fundContractAddress, abi: UmbrellaFund.abi, functionName: 'calculateReturn', args: [],});
-    // console.log("navInit, navCurr, totSupp, return is: ", formatEther(navInit), formatEther(navCurr), ret);
+    // Purchasing first two asset
+    const buyTx1 = await deployer.writeContract({address: fundContractAddress, abi: UmbrellaFund.abi, functionName: 'buyAsset', args: [parseEther(".00001"), 2],});
+    const hash5 = await publicClient.waitForTransactionReceipt({ hash: buyTx1 });
+    const buyTx2 = await deployer.writeContract({address: fundContractAddress, abi: UmbrellaFund.abi, functionName: 'buyAsset', args: [parseEther(".00003"), 0],});
+    const hash6 = await publicClient.waitForTransactionReceipt({ hash: buyTx2 });
+    const out2buy = await publicClient.readContract({address: fundContractAddress, abi: UmbrellaFund.abi, functionName: 'getAsset', args: [2],});
+    const out0buy = await publicClient.readContract({address: fundContractAddress, abi: UmbrellaFund.abi, functionName: 'getAsset', args: [0],});
+    console.log("Asset struct index:0 has contents: ", out0buy, "...\n"); 
+    console.log("Asset struct index:2 has contents: ", out2buy, "...\n");
 
-
+    // Calculating portfolio metrics
+    const navInit = await publicClient.readContract({address: fundContractAddress, abi: UmbrellaFund.abi, functionName: 'calculateNAVInitial', args: [],});
+    console.log('here\n')
+    const navCurr = await publicClient.readContract({address: fundContractAddress, abi: UmbrellaFund.abi, functionName: 'calculateNAVCurrent', args: [],});
+    console.log('here2\n')
+    const ret = await publicClient.readContract({address: fundContractAddress, abi: UmbrellaFund.abi, functionName: 'calculateReturn', args: [],});
+    console.log(`InitialNAVnav is: ${formatEther(navInit)} and CurrentNAV is: ${formatEther(navCurr)} and portfolio return is: ${ret}...\n`);
 }
 
 

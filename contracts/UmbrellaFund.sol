@@ -116,7 +116,9 @@ contract UmbrellaFund is Ownable {
     function calculateNAVCurrent() public view returns (uint256) {
         uint256 nav = 0;
         for (uint i = 0; i < fundAssets.length; i++) {
-            nav += fundAssets[i].tokens * getCLPrice(i);
+            if (fundAssets[i].priceFeed != address(0)) {
+                nav += fundAssets[i].tokens * getCLPrice(i);
+            }
         }
         return nav;
     }
