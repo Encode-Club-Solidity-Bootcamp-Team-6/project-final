@@ -67,7 +67,7 @@ async function main() {
 
     // Deploying the second contract
     console.log("\nDeploying UmbrellaFund contract");
-    const hash2 = await deployer.deployContract({abi: UmbrellaFund.abi, bytecode: UmbrellaFund.bytecode as `0x${string}`, args: ["UmbrellaToken","UMB",parseEther(".00001"),parseEther(".00002"),parseEther(".05")]}); // don't include args if empty
+    const hash2 = await deployer.deployContract({abi: UmbrellaFund.abi, bytecode: UmbrellaFund.bytecode as `0x${string}`, args: ["UmbrellaToken","UMB",parseEther(".00001")]}); // don't include args if empty
     console.log("Transaction hash2:", hash2);
     console.log("Waiting for confirmations...");
     const receipt2 = await publicClient.waitForTransactionReceipt({ hash: hash2 }); // something is wrong here
@@ -101,11 +101,11 @@ async function main() {
     
     
     const priceTx1 = await publicClient.readContract({address: fundContractAddress, abi: UmbrellaFund.abi, functionName: 'getCLPrice', args: [0],});
-    console.log(formatEther(priceTx1));
+    console.log("CL price of BTC/ETH is: ", formatEther(priceTx1));
     const priceTx2 = await publicClient.readContract({address: fundContractAddress, abi: UmbrellaFund.abi, functionName: 'getCLPrice', args: [1],});
-    console.log(formatEther(priceTx2));
+    console.log("CL price of LINK/ETH is: ", formatEther(priceTx2));
     const priceTx3 = await publicClient.readContract({address: fundContractAddress, abi: UmbrellaFund.abi, functionName: 'getCLPrice', args: [2],});
-    console.log(formatEther(priceTx3));
+    console.log("CL price of EUR/USD is: ", formatEther(priceTx3));
 
     // Purchasing first asset
     const buyTx = await deployer.writeContract({address: fundContractAddress, abi: UmbrellaFund.abi, functionName: 'buyAsset', args: [parseEther(".0001"), 2],});
