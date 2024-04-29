@@ -1,5 +1,6 @@
 "use client";
 
+import BuySellToken from "./_components/BuySellTokens";
 import PoolTokens from "./_components/PoolTokens";
 import PoolValue from "./_components/PoolValue";
 import UmbrellaSwap from "./_components/UmbrellaSwap";
@@ -22,6 +23,7 @@ const Home: NextPage = () => {
 
           <div className="grid gap-10 ">
             <UmbrellaSwap address={connectedAddress} />
+            <BuySellToken address={connectedAddress} />
             {/* <UmbrellaVoting address={connectedAddress} /> */}
           </div>
         </div>

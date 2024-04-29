@@ -56,7 +56,7 @@ const UmbrellaSwap: React.FC<UmbrellaSwapProps> = ({ address }) => {
         </div>
         <div className="flex flex-col justify-center">
           <h3>{action} $UMB</h3>
-          <div className="flex justify-start items-center gap-2 mt-4">
+          <div className="flex justify-center items-center gap-2 mt-4">
             <EtherInput
               placeholder={`0 ${action === "Buy" ? "ETH" : "UMB"}`}
               value={amount}
@@ -64,6 +64,7 @@ const UmbrellaSwap: React.FC<UmbrellaSwapProps> = ({ address }) => {
             />
             <span>{action === "Buy" ? "ETH" : "UMB"}</span>
           </div>
+
           <p className="text-xs ml-auto mr-auto underline cursor-pointer" onClick={() => setAmount(balance.toString())}>
             Max. {balance} {action === "Buy" ? "ETH" : "UMB"}
           </p>
@@ -72,8 +73,10 @@ const UmbrellaSwap: React.FC<UmbrellaSwapProps> = ({ address }) => {
               You don&apos;t have enough balance in your wallet to cover that.
             </p>
           )}
+
           <label>You will receive:</label>
-          <div className="flex justify-start items-center gap-2 mt-4">
+
+          <div className="flex justify-center items-center gap-2 mt-4">
             <EtherInput
               placeholder={`0 ${action === "Sell" ? "ETH" : "UMB"}`}
               value={outputAmount}
@@ -82,8 +85,9 @@ const UmbrellaSwap: React.FC<UmbrellaSwapProps> = ({ address }) => {
             <span>{action === "Sell" ? "ETH" : "UMB"}</span>
           </div>
         </div>
+
         <button
-          className="btn btn-primary mt-4"
+          className="btn btn-primary mt-4 w-40 self-center"
           onClick={swap}
           disabled={parseInt(amount) <= 0 || amount === "" || exceededBalance}
         >
