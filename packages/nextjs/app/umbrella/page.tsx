@@ -8,9 +8,11 @@ import UmbrellaSwap from "./_components/UmbrellaSwap";
 import UmbrellaVoting from "./_components/UmbrellaVoting";
 import type { NextPage } from "next";
 import { useAccount } from "wagmi";
+import useUmbrella from "~~/hooks/useUmbrella";
 
 const Home: NextPage = () => {
   const { address: connectedAddress } = useAccount();
+  const { currentNAV, getAssets } = useUmbrella("0xd7e9e516d57f071ba00de44bfd56b0ee9f2ab731");
 
   return (
     <>

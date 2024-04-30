@@ -1,6 +1,8 @@
 import { ArcElement, Chart as ChartJS, Legend, Tooltip } from "chart.js";
 import { Doughnut } from "react-chartjs-2";
 import { CurrencyDollarIcon } from "@heroicons/react/24/outline";
+import { formatEther } from "viem";
+import { Asset } from "~~/hooks/useUmbrella";
 
 interface PoolToken {
   name: string;
@@ -22,7 +24,7 @@ const hardcodedTokens: PoolToken[] = [
 ];
 
 type PoolTokensProps = {
-  address?: string;
+  assets?: Asset[];
 };
 
 export const data = {
@@ -68,11 +70,10 @@ export const options = {
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 /**
- *
  * @param address - The address of the connected account
  * @returns a component that shows the current tokens in the pool
  */
-const PoolTokens: React.FC<PoolTokensProps> = ({ address }) => {
+const PoolTokens: React.FC<PoolTokensProps> = ({ assets = [] }) => {
   return (
     <div className="flex flex-col text-center items-center bg-base-100 p-10 rounded-xl">
       <div className="flex justify-center items-center gap-2">
