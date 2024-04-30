@@ -20,14 +20,10 @@ const Home: NextPage = () => {
         <span>Invest in multiple ERC-20 tokens and build your portfolio.</span>
 
         <div className="flex flex-wrap flex-col mt-10 gap-6 justify-center">
-          <div className="grid grid-cols-2 gap-10 justify-items-center">
-            <PoolValue address={connectedAddress} />
+          <div className="grid gap-8 grid-cols-2 grid-rows-2">
             <PoolTokens address={connectedAddress} />
-          </div>
-
-          <div className="grid gap-10">
-            <UmbrellaSwap address={connectedAddress} />
             <BuySellToken address={connectedAddress} />
+            <UmbrellaSwap address={connectedAddress} />
             <UmbrellaVoting address={connectedAddress} />
           </div>
         </div>
