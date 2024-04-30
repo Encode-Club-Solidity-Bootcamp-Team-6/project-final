@@ -1,4 +1,6 @@
-import { useAccount, useContractReads } from "wagmi";
+import { useEffect, useState } from "react";
+import { parseEther } from "viem";
+import { useAccount, useContractReads, useWriteContract } from "wagmi";
 
 const numberOfAssets = 5; // TODO fetch from contract, if possible
 
@@ -17,6 +19,15 @@ type ContractReadsOutput = {
 
 const useUmbrella = (umbrellaFundAddress: string) => {
   const account = useAccount();
+  const [latestTxMessage, setLatestTxMessage] = useState<string>("");
+  const { data: hash, isPending, error, writeContract } = useWriteContract();
+
+  useEffect(() => {
+    if (isPending) setLatestTxMessage("Transaction pending...");
+    else if (error) setLatestTxMessage(`Transaction failed: ${error.message}`);
+    else if (hash) setLatestTxMessage(`Transaction included. ${hash}`);
+    else setLatestTxMessage("");
+  }, [isPending]);
 
   const umbrellaContract = {
     address: umbrellaFundAddress,
@@ -92,6 +103,48 @@ const useUmbrella = (umbrellaFundAddress: string) => {
     return assets;
   };
 
+  /**
+   * @param amount - The amount in ether to deposit
+   */
+  const deposit = (amount: string) => {
+    writeContract({
+      address: umbrellaFundAddress,
+      abi,
+      functionName: "deposit",
+      value: parseEther(amount),
+    });
+  };
+
+  /**
+   * @param amount - The amount in ether to withdraw
+   */
+  const withdraw = (amount: string) => {
+    writeContract({
+      address: umbrellaFundAddress,
+      abi,
+      functionName: "withdraw",
+      args: [parseEther(amount)],
+    });
+  };
+
+  const buyAsset = (amount: string, index: number) => {
+    writeContract({
+      address: umbrellaFundAddress,
+      abi,
+      functionName: "buyAsset",
+      args: [parseEther(amount), index],
+    });
+  };
+
+  const sellAsset = (index: number) => {
+    writeContract({
+      address: umbrellaFundAddress,
+      abi,
+      functionName: "sellAsset",
+      args: [index],
+    });
+  };
+
   // Umbrella
   const purchaseRatio = data && data[0].status === "success" ? data[0].result.toString() : 0;
   const paymentToken = data && data[1].status === "success" ? data[1].result : null;
@@ -114,7 +167,12 @@ const useUmbrella = (umbrellaFundAddress: string) => {
     initialNAV,
     returnNAV,
     getAssets,
+    deposit,
+    withdraw,
+    buyAsset,
+    sellAsset,
     ticker,
+    latestTxMessage,
     balance,
     isError,
     isLoading,
