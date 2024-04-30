@@ -4,6 +4,7 @@ pragma solidity >=0.7.0 <0.9.0;
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {UmbrellaToken} from "./UmbrellaToken.sol";
 import {PriceConsumerV3} from "./PriceConsumerV3.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 /// @title A very simple investment fund contract
 /// @author jellysky (Group 6, Solidity Bootcamp)
@@ -24,13 +25,16 @@ contract UmbrellaFund is Ownable {
     /// @notice Stuct and array that tracks assets purchased by priceFeed address
     struct asset {
         address priceFeed; // can double for tokenID??
-        string tokenName;
-        uint256 tokens;
+        string tokenNum; // numerator currency (so in the case of ETH / USD, its ETH)
+        string tokenDen; // denominator currency (so in the case of ETH / USD, its USD)
+        uint256 tokenAmount;
         uint256 initPrice;
         PriceConsumerV3 priceFeeder;
     }
-
+    
     asset[5] public fundAssets; // i've set the max assets in our portfolio to 5
+
+    PriceConsumerV3 public priceFeederETH = new PriceConsumerV3(0x694AA1769357215DE4FAC081bf1f309aDC325306);  // allows me to convert denoms all to ETH
 
     /// @notice Constructor function
     /// @param tokenName Name of the token used for payment
@@ -38,7 +42,6 @@ contract UmbrellaFund is Ownable {
     
     constructor(string memory tokenName, string memory tokenSymbol, uint256 _purchaseRatio) Ownable(msg.sender) {
         paymentToken = new UmbrellaToken(tokenName, tokenSymbol);
-        purchaseRatio = _purchaseRatio;
         purchaseRatio = _purchaseRatio;
     }
 
@@ -48,28 +51,35 @@ contract UmbrellaFund is Ownable {
     }
 
     /// @notice Gets asset struct values except for prices because those cost SEP ETH
-    function getAsset(uint index) view external returns (address, string memory, uint256, uint256) {
-        return (fundAssets[index].priceFeed, fundAssets[index].tokenName, fundAssets[index].tokens, fundAssets[index].initPrice);
+    function getAsset(uint index) view external returns (address, string memory, string memory, uint256, uint256) {
+        return (fundAssets[index].priceFeed, fundAssets[index].tokenNum, fundAssets[index].tokenDen, fundAssets[index].tokenAmount, fundAssets[index].initPrice);
     }
 
     /// @notice Sets CL initial values so we can pull data
-    function setCLInitValues(uint index, address _priceFeed, string memory _tokenName) external {
+    function setCLInitValues(uint index, address _priceFeed, string memory _tokenNum, string memory _tokenDen) external {
         require(_priceFeed != address(0), "Pricefeed address not acceptable");
         fundAssets[index].priceFeed = _priceFeed;
-        fundAssets[index].tokenName = _tokenName;
+        fundAssets[index].tokenNum = _tokenNum;
+        fundAssets[index].tokenDen = _tokenDen;
         fundAssets[index].priceFeeder = new PriceConsumerV3(_priceFeed);
     }
 
+    /// @notice Am trying to set the right number to scale down the actual pulls from chainlink - THIS NEEDS TO BE FIGURED OUT
+    // function getScaleFactor(uint index) view internal returns (uint256) {
+    //     uint256 scaleFactor = 1;
+    //     if (Strings.equal(fundAssets[index].tokenDen,"ETH")) {
+    //         scaleFactor = 10**18;
+    //     } else if (Strings.equal(fundAssets[index].tokenDen,"USD")) {
+    //         scaleFactor = 10**8;
+    //     }
+    //     return scaleFactor;
+    // }
+
     /// @notice Gets CL prices.  We need to convert it to uint256 or else division fails
-    function getCLPrice(uint index) view public returns (uint256) {
+    function getCLPrice(uint index) view public returns (uint256) {       
         uint256 price = uint256(fundAssets[index].priceFeeder.getLatestPrice());
         return price; 
     }
-
-    // modifier exceedBuyingPower(uint256 totalInvested, uint256 totalSupply) {
-    //     require(totalInvested * purchaseRatio + totalSupply <= max_coins);
-    //     _;
-    // }
     
     /// @notice Gives tokens based on the amount of ETH sent
     /// @dev This implementation is prone to rounding problems - ALSO ADD MODIFIER TO ENSURE TOTAL COINS IS NOT EXCEEDED
@@ -80,6 +90,7 @@ contract UmbrellaFund is Ownable {
 
     /// @notice Burns `amount` tokens and give the equivalent ETH back to user, need to approve to use BurnFrom
     function withdraw(uint256 amount) external {
+        require(amount <= paymentToken.totalSupply() / purchaseRatio - calculateNAVInitial(), "Not enough free ETH to make withdrawal"); // make sure there is enough ETH to make withdrawal
         paymentToken.burnFrom(msg.sender, amount);
         tokenShare[msg.sender] -= amount;
         payable(msg.sender).transfer(amount / purchaseRatio);
@@ -87,14 +98,14 @@ contract UmbrellaFund is Ownable {
 
     /// @notice Uses `amount` of ETH to purchase asset and sets purchasePrice - NEED TO INTEGRATE CHAINLINK PRICING
     function buyAsset(uint256 amount, uint index) external {
-        require(amount <= paymentToken.totalSupply() / purchaseRatio - calculateNAVInitial(), "Not enough ETH to make purchase"); // make sure amount is less than ETH available for spending
+        require(amount <= paymentToken.totalSupply() / purchaseRatio - calculateNAVInitial(), "Not enough ETH to make purchase"); // make sure amount is less than ETH available for spending        
         fundAssets[index].initPrice = getCLPrice(index);
-        fundAssets[index].tokens = amount / getCLPrice(index);
+        fundAssets[index].tokenAmount = amount / (getCLPrice(index));
     }
     
     /// @notice Sells all of asset in array index struct
     function sellAsset(uint index) external {
-        fundAssets[index].tokens = 0;
+        fundAssets[index].tokenAmount = 0;
         fundAssets[index].initPrice = 0;
     }
 
@@ -102,12 +113,45 @@ contract UmbrellaFund is Ownable {
     function getTotalSupply() public view returns (uint256) {
         return paymentToken.totalSupply();
     }
+
+    /// @notice Gets the token names in a long string.  This will be needed for the front end.
+    function getTokenNames() public view returns (string memory) {
+        string memory tokenNames = "";
+        for (uint i = 0; i < fundAssets.length; i++) {
+            if (fundAssets[i].tokenAmount > 0) {
+                tokenNames = string.concat(tokenNames, fundAssets[i].tokenNum, "/", fundAssets[i].tokenDen, " , ");
+            }
+        }
+        return tokenNames;
+    }
     
+    /// @notice Gets the token amounts in a long string.  This will be needed for the front end.
+    function getTokenAmounts() public view returns (string memory) {
+        string memory tokenAmounts = "";
+        for (uint i = 0; i < fundAssets.length; i++) {
+            if (fundAssets[i].tokenAmount > 0) {
+                tokenAmounts = string.concat(tokenAmounts, Strings.toString(fundAssets[i].tokenAmount), " , ");
+            }
+        }
+        return tokenAmounts;
+    }
+
+    /// @notice Gets the token values in a long string.  This will be needed for the front end.
+    function getTokenValues() public view returns (string memory) {
+        string memory tokenValues = "";
+        for (uint i = 0; i < fundAssets.length; i++) {
+            if (fundAssets[i].tokenAmount > 0) {
+                tokenValues = string.concat(tokenValues, Strings.toString(fundAssets[i].tokenAmount * getCLPrice(i)), " , ");
+            }
+        }
+        return tokenValues;
+    }
+
     /// @notice Calculates NAV (denominated in ETH) at the time of asset purchase
     function calculateNAVInitial() public view returns (uint256) {
         uint256 nav = 0;
         for (uint i = 0; i < fundAssets.length; i++) {
-            nav += fundAssets[i].tokens * fundAssets[i].initPrice;
+            nav += fundAssets[i].tokenAmount * fundAssets[i].initPrice;
         }
         return nav;
     }
@@ -117,7 +161,7 @@ contract UmbrellaFund is Ownable {
         uint256 nav = 0;
         for (uint i = 0; i < fundAssets.length; i++) {
             if (fundAssets[i].priceFeed != address(0)) {
-                nav += fundAssets[i].tokens * getCLPrice(i);
+                nav += fundAssets[i].tokenAmount * getCLPrice(i);
             }
         }
         return nav;
