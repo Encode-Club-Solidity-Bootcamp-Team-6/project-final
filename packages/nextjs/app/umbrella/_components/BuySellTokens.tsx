@@ -25,7 +25,7 @@ const BuySellToken: React.FC<BuyTokenProps> = ({ address }) => {
   };
 
   return (
-    <div className="bg-blue-900 p-10 rounded-xl">
+    <div className="bg-blue-900 p-10 rounded-xl flex flex-col">
       <div className="flex items-center gap-4">
         <BanknotesIcon className="h-8 w-8 fill-secondary" />
         <p className="text-xl font-bold">Buy or Sell ERC20 Tokens</p>
@@ -43,12 +43,23 @@ const BuySellToken: React.FC<BuyTokenProps> = ({ address }) => {
         Sell
       </div>
 
+      <div>
+        <select className="select w-full mt-5 p-2 rounded-lg " onChange={e => setToken(e.target.value)} value={token}>
+          <option value="AAVE">AAVE</option>
+          <option value="UNI">UNI</option>
+          <option value="LINK">LINK</option>
+          <option value="USDT">USDT</option>
+        </select>
+      </div>
+
       <div className="flex justify-center items-center gap-2 mt-4">
         <EtherInput placeholder={`0`} value={amount} onChange={value => setAmount(value)} />
         <span>{token}</span>
       </div>
 
-      <div></div>
+      <button className="btn btn-primary mt-4 w-40 self-center" onClick={() => {}}>
+        {action}
+      </button>
     </div>
   );
 };
