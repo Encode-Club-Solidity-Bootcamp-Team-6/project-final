@@ -34,6 +34,8 @@ contract UmbrellaFund is Ownable {
     
     asset[5] public fundAssets; // i've set the max assets in our portfolio to 5
 
+    PriceConsumerV3 public priceFeederETH = new PriceConsumerV3(0x694AA1769357215DE4FAC081bf1f309aDC325306);  // allows me to convert denoms all to ETH
+
     /// @notice Constructor function
     /// @param tokenName Name of the token used for payment
     /// @param tokenSymbol Symbol of the token used for payment
@@ -62,16 +64,17 @@ contract UmbrellaFund is Ownable {
         fundAssets[index].priceFeeder = new PriceConsumerV3(_priceFeed);
     }
 
-    function getScaleFactor(uint index) view internal returns (uint256) {
-        uint256 scaleFactor = 1;
-        if (Strings.equal(fundAssets[index].tokenDen,"ETH")) {
-            scaleFactor = 10**18;
-        } else if (Strings.equal(fundAssets[index].tokenDen,"USD")) {
-            scaleFactor = 10**8;
-        }
-        return scaleFactor;
-    }
-    
+    /// @notice Am trying to set the right number to scale down the actual pulls from chainlink - THIS NEEDS TO BE FIGURED OUT
+    // function getScaleFactor(uint index) view internal returns (uint256) {
+    //     uint256 scaleFactor = 1;
+    //     if (Strings.equal(fundAssets[index].tokenDen,"ETH")) {
+    //         scaleFactor = 10**18;
+    //     } else if (Strings.equal(fundAssets[index].tokenDen,"USD")) {
+    //         scaleFactor = 10**8;
+    //     }
+    //     return scaleFactor;
+    // }
+
     /// @notice Gets CL prices.  We need to convert it to uint256 or else division fails
     function getCLPrice(uint index) view public returns (uint256) {       
         uint256 price = uint256(fundAssets[index].priceFeeder.getLatestPrice());
