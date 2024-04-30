@@ -14,13 +14,13 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 contract UmbrellaFund is Ownable {
         
     /// @notice Address of the token used as payment for the bets
-    UmbrellaToken public paymentToken;
+    UmbrellaToken private paymentToken;
     
     /// @notice Amount of umbrella tokens given per ETH paid - units (token / ETH)
-    uint256 public purchaseRatio;
+    uint256 private purchaseRatio;
     
     /// @notice Array that tracks tokens purchased by investor address
-    mapping (address => uint) public tokenShare;
+    mapping (address => uint256) private tokenShare;
     
     /// @notice Stuct and array that tracks assets purchased by priceFeed address
     struct asset {
@@ -32,9 +32,9 @@ contract UmbrellaFund is Ownable {
         PriceConsumerV3 priceFeeder;
     }
     
-    asset[5] public fundAssets; // i've set the max assets in our portfolio to 5
+    asset[5] private fundAssets; // i've set the max assets in our portfolio to 5
 
-    PriceConsumerV3 public priceFeederETH = new PriceConsumerV3(0x694AA1769357215DE4FAC081bf1f309aDC325306);  // allows me to convert denoms all to ETH
+    // PriceConsumerV3 public priceFeederETH = new PriceConsumerV3(0x694AA1769357215DE4FAC081bf1f309aDC325306);  // allows me to convert denoms all to ETH
 
     /// @notice Constructor function
     /// @param tokenName Name of the token used for payment
@@ -45,9 +45,14 @@ contract UmbrellaFund is Ownable {
         purchaseRatio = _purchaseRatio;
     }
 
+    /// @notice Getting purchase ratio
+    function getPurchaseRatio() view external returns (uint256) {
+        return purchaseRatio;
+    }
+
     /// @notice Running counter of how many tokens each investor has
-    function getTokenShare(address investor) view external returns (uint) {
-        return tokenShare[investor];
+    function getTokenShare() view external returns (uint256) {
+        return tokenShare[msg.sender];
     }
 
     /// @notice Gets asset struct values except for prices because those cost SEP ETH
@@ -56,7 +61,7 @@ contract UmbrellaFund is Ownable {
     }
 
     /// @notice Sets CL initial values so we can pull data
-    function setCLInitValues(uint index, address _priceFeed, string memory _tokenNum, string memory _tokenDen) external {
+    function setCLInitValues(uint index, address _priceFeed, string memory _tokenNum, string memory _tokenDen) external onlyOwner {
         require(_priceFeed != address(0), "Pricefeed address not acceptable");
         fundAssets[index].priceFeed = _priceFeed;
         fundAssets[index].tokenNum = _tokenNum;
@@ -64,49 +69,47 @@ contract UmbrellaFund is Ownable {
         fundAssets[index].priceFeeder = new PriceConsumerV3(_priceFeed);
     }
 
-    /// @notice Am trying to set the right number to scale down the actual pulls from chainlink - THIS NEEDS TO BE FIGURED OUT
-    // function getScaleFactor(uint index) view internal returns (uint256) {
-    //     uint256 scaleFactor = 1;
-    //     if (Strings.equal(fundAssets[index].tokenDen,"ETH")) {
-    //         scaleFactor = 10**18;
-    //     } else if (Strings.equal(fundAssets[index].tokenDen,"USD")) {
-    //         scaleFactor = 10**8;
-    //     }
-    //     return scaleFactor;
-    // }
+    function getPaymentTokenAddress() external view returns(address) {
+        return address(paymentToken);
+    }
 
-    /// @notice Gets CL prices.  We need to convert it to uint256 or else division fails
-    function getCLPrice(uint index) view public returns (uint256) {       
+    /// @notice Gets CL prices.  We need to convert it to uint256 or else division fails.  This should be private because calls cost gas.
+    function getCLPrice(uint index) internal view returns(uint256) {       
         uint256 price = uint256(fundAssets[index].priceFeeder.getLatestPrice());
         return price; 
     }
     
     /// @notice Gives tokens based on the amount of ETH sent
-    /// @dev This implementation is prone to rounding problems - ALSO ADD MODIFIER TO ENSURE TOTAL COINS IS NOT EXCEEDED
+    /// @dev This implementation is prone to rounding problems
     function deposit() external payable {
         paymentToken.mint(msg.sender, msg.value * purchaseRatio);
         tokenShare[msg.sender] += msg.value * purchaseRatio;
     }
 
-    /// @notice Burns `amount` tokens and give the equivalent ETH back to user, need to approve to use BurnFrom
-    function withdraw(uint256 amount) external {
-        require(amount <= paymentToken.totalSupply() / purchaseRatio - calculateNAVInitial(), "Not enough free ETH to make withdrawal"); // make sure there is enough ETH to make withdrawal
+    /// @notice Burns 'amount' of tokens associated with an address and give the equivalent ETH back to user less gas fees (I haven't figured this part out yet), need to approve to use BurnFrom
+    function withdraw() external {
+        uint256 amount = tokenShare[msg.sender];
+        require(amount > 0, "No token holdings for address");
+        require(amount <= getTotalSupply() - calculateNAVInitial() * purchaseRatio, "Not enough free ETH to make withdrawal"); // make sure there is enough ETH to make withdrawal
         paymentToken.burnFrom(msg.sender, amount);
         tokenShare[msg.sender] -= amount;
         payable(msg.sender).transfer(amount / purchaseRatio);
     }
 
     /// @notice Uses `amount` of ETH to purchase asset and sets purchasePrice - NEED TO INTEGRATE CHAINLINK PRICING
-    function buyAsset(uint256 amount, uint index) external {
-        require(amount <= paymentToken.totalSupply() / purchaseRatio - calculateNAVInitial(), "Not enough ETH to make purchase"); // make sure amount is less than ETH available for spending        
+    function buyAsset(uint256 amount, uint index) external onlyOwner {
+        require(amount <= getTotalSupply() / purchaseRatio - calculateNAVInitial(), "Not enough ETH to make purchase"); // make sure amount is less than ETH available for spending        
         fundAssets[index].initPrice = getCLPrice(index);
         fundAssets[index].tokenAmount = amount / (getCLPrice(index));
     }
     
-    /// @notice Sells all of asset in array index struct
-    function sellAsset(uint index) external {
+    /// @notice Sells all of asset in array index struct and resets all the elements
+    function sellAsset(uint index) external onlyOwner {
         fundAssets[index].tokenAmount = 0;
         fundAssets[index].initPrice = 0;
+        fundAssets[index].tokenNum = "";
+        fundAssets[index].tokenDen = "";
+        fundAssets[index].priceFeed = address(0);
     }
 
     /// @notice Gets the total token supply.  This is needed to ensure we don't spend more ETH than the fund contract has available (since we are actually not making purchases)
@@ -116,35 +119,36 @@ contract UmbrellaFund is Ownable {
 
     /// @notice Gets the token names in a long string.  This will be needed for the front end.
     function getTokenNames() public view returns (string memory) {
-        string memory tokenNames = "";
+        string memory tokenNames = "(";
         for (uint i = 0; i < fundAssets.length; i++) {
             if (fundAssets[i].tokenAmount > 0) {
-                tokenNames = string.concat(tokenNames, fundAssets[i].tokenNum, "/", fundAssets[i].tokenDen, " , ");
+                tokenNames = string.concat(tokenNames, fundAssets[i].tokenNum, "/", fundAssets[i].tokenDen, ", ");
             }
         }
-        return tokenNames;
+
+        return string.concat(tokenNames, ")");
     }
     
     /// @notice Gets the token amounts in a long string.  This will be needed for the front end.
     function getTokenAmounts() public view returns (string memory) {
-        string memory tokenAmounts = "";
+        string memory tokenAmounts = "(";
         for (uint i = 0; i < fundAssets.length; i++) {
             if (fundAssets[i].tokenAmount > 0) {
-                tokenAmounts = string.concat(tokenAmounts, Strings.toString(fundAssets[i].tokenAmount), " , ");
+                tokenAmounts = string.concat(tokenAmounts, Strings.toString(fundAssets[i].tokenAmount), ", ");
             }
         }
-        return tokenAmounts;
+        return string.concat(tokenAmounts, ")");
     }
 
     /// @notice Gets the token values in a long string.  This will be needed for the front end.
     function getTokenValues() public view returns (string memory) {
-        string memory tokenValues = "";
+        string memory tokenValues = "(";
         for (uint i = 0; i < fundAssets.length; i++) {
             if (fundAssets[i].tokenAmount > 0) {
-                tokenValues = string.concat(tokenValues, Strings.toString(fundAssets[i].tokenAmount * getCLPrice(i)), " , ");
+                tokenValues = string.concat(tokenValues, Strings.toString(fundAssets[i].tokenAmount * getCLPrice(i)), ", ");
             }
         }
-        return tokenValues;
+        return string.concat(tokenValues, ")");
     }
 
     /// @notice Calculates NAV (denominated in ETH) at the time of asset purchase
