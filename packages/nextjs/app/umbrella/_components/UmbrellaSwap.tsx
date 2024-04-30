@@ -39,7 +39,7 @@ const UmbrellaSwap: React.FC<UmbrellaSwapProps> = ({ address }) => {
   };
 
   return (
-    <div className="bg-blue-900 p-10 rounded-xl col-start-1 col-end-2 row-start-2 row-end-4">
+    <div className="bg-base-100 p-10 rounded-xl">
       <h2 className="text-xl">Swap $UMB</h2>
       <p className="text-sm">Swap your tokens for $UMB and start investing with us.</p>
       <div className="mt-8 flex flex-col gap-4">

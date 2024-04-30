@@ -36,7 +36,7 @@ const UmbrellaVoting: React.FC<UmbrellaVotingProps> = ({ address }) => {
   ];
 
   return (
-    <div className="bg-blue-900 p-10 rounded-xl col-start-2 col-end-4 row-start-2 row-end-3 flex flex-col ">
+    <div className="bg-base-100 p-10 rounded-xl flex flex-col ">
       <h2 className="text-xl">
         Proposals & Voting <span className="d italic">(coming soon)</span>
       </h2>
