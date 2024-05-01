@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { parseEther } from "viem";
-import { useAccount, useContractReads, useWriteContract } from "wagmi";
+import { useAccount, useBalance, useContractReads, useWriteContract } from "wagmi";
 import { PoolToken } from "~~/app/umbrella/_components/PoolTokens";
 
 const numberOfAssets = 5; // TODO fetch from contract, if possible
@@ -21,6 +21,9 @@ type ContractReadsOutput = {
 
 const useUmbrella = (umbrellaFundAddress: string) => {
   const account = useAccount();
+  const fundEthBalance = useBalance({
+    address: umbrellaFundAddress,
+  });
   const [latestTxMessage, setLatestTxMessage] = useState<string>("");
   const { data: hash, isPending, error, writeContract } = useWriteContract();
 
@@ -120,7 +123,7 @@ const useUmbrella = (umbrellaFundAddress: string) => {
   /**
    * @param amount - The amount in ether to deposit
    */
-  const deposit = (amount: string) => {
+  const deposit = async (amount: string) => {
     writeContract({
       address: umbrellaFundAddress,
       abi,
@@ -132,7 +135,7 @@ const useUmbrella = (umbrellaFundAddress: string) => {
   /**
    * @param amount - The amount in ether to withdraw
    */
-  const withdraw = (amount: string) => {
+  const withdraw = async (amount: string) => {
     writeContract({
       address: umbrellaFundAddress,
       abi,
@@ -160,27 +163,34 @@ const useUmbrella = (umbrellaFundAddress: string) => {
   };
 
   console.log(data);
+  console.log(dataToken);
 
   // Umbrella
   const purchaseRatio = data && data[0].status === "success" ? data[0].result.toString() : 0;
   const paymentToken = data && data[1].status === "success" ? data[1].result : null;
   const tokenShare = data && data[2].status === "success" ? data[2].result : 0;
   const totalSupply = data && data[3].status === "success" ? data[3].result : 0;
-  const currentNAV = data && data[4].status === "success" ? data[4].result : 0;
-  const initialNAV = data && data[5].status === "success" ? data[5].result : 0;
-  const returnNAV = data && data[6].status === "success" ? data[6].result : 0;
+  const currentNAV = data && data[4].status === "success" ? data[4].result : 0; // current pool value
+  const initialNAV = data && data[5].status === "success" ? data[5].result : 0; // initial pool value on buy
+  const returnNAV = data && data[6].status === "success" ? data[6].result : "N/A"; // return on investment
   const tokenNames = data && data[7].status === "success" ? (data[7].result as string).split(",") : [];
   const tokenAmounts = data && data[8].status === "success" ? (data[8].result as string).split(",") : [];
   const tokenValues = data && data[9].status === "success" ? (data[9].result as string).split(",") : [];
 
   // Pool Token
   let tokens: PoolToken[] = [];
-  if (data && data[7].status === "success" && data[8].status === "success" && data[9].status === "success")
+  if (
+    data &&
+    data[7].status === "success" &&
+    tokenNames[0] !== "()" &&
+    data[8].status === "success" &&
+    data[9].status === "success"
+  )
     tokens = generatePoolTokens(tokenNames, tokenAmounts, tokenValues);
 
   // Token
   const ticker = dataToken && dataToken[0].status === "success" ? (dataToken[0].result as any).toString() : "Unknown";
-  const balance = dataToken && dataToken[1].status === "success" ? dataToken[1].result : 0;
+  const userBalanceUMB = dataToken && dataToken[1].status === "success" ? (dataToken[1].result as bigint) : 0n;
 
   return {
     purchaseRatio,
@@ -198,9 +208,12 @@ const useUmbrella = (umbrellaFundAddress: string) => {
     poolTokens: tokens,
     ticker,
     latestTxMessage,
-    balance,
+    latestHash: hash,
+    latestWriteError: error,
+    userBalanceUMB,
+    fundEthBalance,
     isError,
-    isLoading,
+    isLoading: isLoading || isPending,
   };
 };
 
@@ -217,8 +230,32 @@ const generatePoolTokens = (names: string[], amounts: string[], values: string[]
   return tokens;
 };
 
-// TODO: outdated ABI
 const abi = [
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "index",
+        type: "uint256",
+      },
+    ],
+    name: "buyAsset",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "deposit",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
   {
     inputs: [
       {
@@ -282,19 +319,75 @@ const abi = [
     type: "event",
   },
   {
+    inputs: [],
+    name: "renounceOwnership",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
     inputs: [
-      {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
       {
         internalType: "uint256",
         name: "index",
         type: "uint256",
       },
     ],
-    name: "buyAsset",
+    name: "sellAsset",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "index",
+        type: "uint256",
+      },
+      {
+        internalType: "address",
+        name: "_priceFeed",
+        type: "address",
+      },
+      {
+        internalType: "string",
+        name: "_tokenNum",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "_tokenDen",
+        type: "string",
+      },
+    ],
+    name: "setCLInitValues",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "newOwner",
+        type: "address",
+      },
+    ],
+    name: "transferOwnership",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+    ],
+    name: "withdraw",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -339,13 +432,6 @@ const abi = [
     type: "function",
   },
   {
-    inputs: [],
-    name: "deposit",
-    outputs: [],
-    stateMutability: "payable",
-    type: "function",
-  },
-  {
     inputs: [
       {
         internalType: "uint256",
@@ -362,12 +448,17 @@ const abi = [
       },
       {
         internalType: "string",
-        name: "tokenName",
+        name: "tokenNum",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "tokenDen",
         type: "string",
       },
       {
         internalType: "uint256",
-        name: "tokens",
+        name: "tokenAmount",
         type: "uint256",
       },
       {
@@ -398,6 +489,11 @@ const abi = [
         internalType: "address",
         name: "",
         type: "address",
+      },
+      {
+        internalType: "string",
+        name: "",
+        type: "string",
       },
       {
         internalType: "string",
@@ -438,6 +534,32 @@ const abi = [
     type: "function",
   },
   {
+    inputs: [],
+    name: "getTokenAmounts",
+    outputs: [
+      {
+        internalType: "string",
+        name: "",
+        type: "string",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getTokenNames",
+    outputs: [
+      {
+        internalType: "string",
+        name: "",
+        type: "string",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [
       {
         internalType: "address",
@@ -451,6 +573,19 @@ const abi = [
         internalType: "uint256",
         name: "",
         type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getTokenValues",
+    outputs: [
+      {
+        internalType: "string",
+        name: "",
+        type: "string",
       },
     ],
     stateMutability: "view",
@@ -497,6 +632,19 @@ const abi = [
   },
   {
     inputs: [],
+    name: "priceFeederETH",
+    outputs: [
+      {
+        internalType: "contract PriceConsumerV3",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "purchaseRatio",
     outputs: [
       {
@@ -506,49 +654,6 @@ const abi = [
       },
     ],
     stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "renounceOwnership",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "index",
-        type: "uint256",
-      },
-    ],
-    name: "sellAsset",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "index",
-        type: "uint256",
-      },
-      {
-        internalType: "address",
-        name: "_priceFeed",
-        type: "address",
-      },
-      {
-        internalType: "string",
-        name: "_tokenName",
-        type: "string",
-      },
-    ],
-    name: "setCLInitValues",
-    outputs: [],
-    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -568,32 +673,6 @@ const abi = [
       },
     ],
     stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "newOwner",
-        type: "address",
-      },
-    ],
-    name: "transferOwnership",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-    ],
-    name: "withdraw",
-    outputs: [],
-    stateMutability: "nonpayable",
     type: "function",
   },
 ];

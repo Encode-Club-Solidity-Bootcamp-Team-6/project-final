@@ -1,18 +1,25 @@
 import { useState } from "react";
+import { formatEther } from "viem";
+import { useAccount, useBalance } from "wagmi";
 import { EtherInput } from "~~/components/scaffold-eth";
 
 type UmbrellaSwapProps = {
-  address?: string;
-  deposit: (amount: string) => Promise<void>;
+  onBuy: (amount: string) => Promise<void>;
+  onSell: (amount: string) => Promise<void>;
+  balanceUMB: bigint;
 };
 
 /**
  *
- * @param address - The address of the connected account
+ * @param onBuy - The function to call when the user buys $UMB
+ * @param onSell - The function to call when the user sells $UMB
+ *
  * @returns a component that allows the user to swap $UMB tokens
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const UmbrellaSwap: React.FC<UmbrellaSwapProps> = ({ address, deposit }) => {
+const UmbrellaSwap: React.FC<UmbrellaSwapProps> = ({ onBuy, onSell, balanceUMB }) => {
+  const account = useAccount();
+  const balance = useBalance(account);
   const [action, setAction] = useState("Buy");
 
   const handleToggle = () => {
@@ -23,21 +30,19 @@ const UmbrellaSwap: React.FC<UmbrellaSwapProps> = ({ address, deposit }) => {
     setAction("Buy");
   };
 
-  // TODO: Implement balance
-  const balance = 16.224;
-
   const [amount, setAmount] = useState("");
   const [outputAmount, setOutputAmount] = useState("");
-  const exceededBalance = parseInt(amount) > balance;
+  const maxBalance = action === "Buy" ? formatEther(balance.data?.value || 0n) : formatEther(balanceUMB);
+  const exceededBalance = parseFloat(amount) > parseFloat(maxBalance);
 
   // TODO: Implement swap function
   const swap = async () => {
     if (action === "Buy") {
       console.log(`Buying ${amount} $UMB`);
-      await deposit(amount);
-      console.log("Deposit successful:", amount);
+      await onBuy(amount);
     } else {
       console.log(`Selling ${amount} $UMB`);
+      await onSell(amount);
     }
   };
 
@@ -68,9 +73,10 @@ const UmbrellaSwap: React.FC<UmbrellaSwapProps> = ({ address, deposit }) => {
             <span>{action === "Buy" ? "ETH" : "UMB"}</span>
           </div>
 
-          <p className="text-xs ml-auto mr-auto underline cursor-pointer" onClick={() => setAmount(balance.toString())}>
-            Max. {balance} {action === "Buy" ? "ETH" : "UMB"}
+          <p className="text-xs ml-auto mr-auto underline cursor-pointer" onClick={() => setAmount(maxBalance)}>
+            Max. {maxBalance} {action === "Buy" ? "ETH" : "UMB"}
           </p>
+
           {exceededBalance && (
             <p className="text-xs ml-auto mr-auto underline cursor-pointer text-red-400">
               You don&apos;t have enough balance in your wallet to cover that.
@@ -92,7 +98,7 @@ const UmbrellaSwap: React.FC<UmbrellaSwapProps> = ({ address, deposit }) => {
         <button
           className="btn btn-primary mt-4 w-40 self-center"
           onClick={swap}
-          disabled={parseInt(amount) <= 0 || amount === "" || exceededBalance}
+          disabled={parseFloat(amount) <= 0 || amount === ""}
         >
           Swap
         </button>
