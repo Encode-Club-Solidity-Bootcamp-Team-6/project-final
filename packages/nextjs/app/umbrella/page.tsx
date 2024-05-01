@@ -12,9 +12,7 @@ import useUmbrella from "~~/hooks/useUmbrella";
 
 const Home: NextPage = () => {
   const { address: connectedAddress } = useAccount();
-  const { currentNAV, getAssets, tokenNames, tokenValues } = useUmbrella("0xAdd171f041fa71F533Cec6Fe62BD935461F81401");
-
-  const tokens = generatePoolTokens(tokenNames, tokenValues);
+  const { currentNAV, getAssets, poolTokens } = useUmbrella("0xAdd171f041fa71F533Cec6Fe62BD935461F81401");
 
   return (
     <>
@@ -25,7 +23,7 @@ const Home: NextPage = () => {
 
         <div className="flex flex-wrap flex-col mt-10 gap-6 justify-center">
           <div className="grid gap-8 grid-cols-2 grid-rows-2">
-            <PoolTokens tokens={tokens} />
+            <PoolTokens tokens={poolTokens} />
             <BuySellToken address={connectedAddress} />
             <UmbrellaSwap address={connectedAddress} />
             <UmbrellaVoting address={connectedAddress} />
@@ -34,17 +32,6 @@ const Home: NextPage = () => {
       </div>
     </>
   );
-};
-
-const generatePoolTokens = (tokenNames: string[], tokenValues: string[]): PoolToken[] => {
-  const tokens = tokenNames.map((name, index) => {
-    return {
-      name,
-      value: BigInt(tokenValues[index]),
-    };
-  });
-
-  return tokens;
 };
 
 export default Home;

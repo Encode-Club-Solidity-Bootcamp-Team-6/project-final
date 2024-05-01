@@ -6,19 +6,9 @@ import { Asset } from "~~/hooks/useUmbrella";
 
 export interface PoolToken {
   name: string;
+  amount: bigint;
   value: bigint;
 }
-
-const hardcodedTokens: PoolToken[] = [
-  {
-    name: "Uniswap",
-    value: 1000000n,
-  },
-  {
-    name: "Aave",
-    value: 5000000n,
-  },
-];
 
 type PoolTokensProps = {
   tokens: PoolToken[];
