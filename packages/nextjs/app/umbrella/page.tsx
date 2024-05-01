@@ -16,6 +16,7 @@ const Home: NextPage = () => {
   const {
     currentNAV,
     deposit,
+    approve,
     withdraw,
     getAssets,
     poolTokens,
@@ -47,7 +48,7 @@ const Home: NextPage = () => {
           <div className="grid gap-8 grid-cols-2 grid-rows-2">
             <PoolTokens tokens={poolTokens} />
             <BuySellToken address={connectedAddress} />
-            <UmbrellaSwap onBuy={deposit} onSell={withdraw} balanceUMB={userBalanceUMB} />
+            <UmbrellaSwap onBuy={deposit} onSell={withdraw} balanceUMB={userBalanceUMB} approve={approve} />
             <UmbrellaVoting address={connectedAddress} />
           </div>
         </div>
