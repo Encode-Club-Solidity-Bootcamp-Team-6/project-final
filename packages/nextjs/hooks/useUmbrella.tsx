@@ -6,8 +6,9 @@ const numberOfAssets = 5; // TODO fetch from contract, if possible
 
 export interface Asset {
   priceFeed: string;
-  tokenName: string;
-  tokens: bigint;
+  tokenNum: string;
+  tokenDen: string;
+  tokenAmount: bigint;
   initPrice: bigint;
 }
 
@@ -64,6 +65,18 @@ const useUmbrella = (umbrellaFundAddress: string) => {
       {
         ...umbrellaContract,
         functionName: "calculateReturn",
+      },
+      {
+        ...umbrellaContract,
+        functionName: "getTokenNames", // comma separated list of token names
+      },
+      {
+        ...umbrellaContract,
+        functionName: "getTokenAmounts", // comma separated list of token amounts
+      },
+      {
+        ...umbrellaContract,
+        functionName: "getTokenValues", // comma separated list of token values (amount * price)
       },
     ],
   });
@@ -153,6 +166,9 @@ const useUmbrella = (umbrellaFundAddress: string) => {
   const currentNAV = data && data[4].status === "success" ? data[4].result : 0;
   const initialNAV = data && data[5].status === "success" ? data[5].result : 0;
   const returnNAV = data && data[6].status === "success" ? data[6].result : 0;
+  const tokenNames = data && data[7].status === "success" ? (data[7].result as string).split(",") : [];
+  const tokenAmounts = data && data[8].status === "success" ? (data[8].result as string).split(",") : [];
+  const tokenValues = data && data[9].status === "success" ? (data[9].result as string).split(",") : [];
 
   // Token
   const ticker = dataToken && dataToken[0].status === "success" ? (dataToken[0].result as any).toString() : "Unknown";
@@ -171,6 +187,9 @@ const useUmbrella = (umbrellaFundAddress: string) => {
     withdraw,
     buyAsset,
     sellAsset,
+    tokenNames,
+    tokenAmounts,
+    tokenValues,
     ticker,
     latestTxMessage,
     balance,

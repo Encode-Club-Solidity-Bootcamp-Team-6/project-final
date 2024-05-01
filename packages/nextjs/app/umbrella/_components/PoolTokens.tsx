@@ -1,7 +1,6 @@
 import { ArcElement, Chart as ChartJS, Legend, Tooltip } from "chart.js";
 import { Doughnut } from "react-chartjs-2";
 import { CurrencyDollarIcon } from "@heroicons/react/24/outline";
-import { formatEther } from "viem";
 import { Asset } from "~~/hooks/useUmbrella";
 
 interface PoolToken {
