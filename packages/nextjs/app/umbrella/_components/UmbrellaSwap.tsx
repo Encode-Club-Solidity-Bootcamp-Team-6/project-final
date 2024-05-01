@@ -3,6 +3,7 @@ import { EtherInput } from "~~/components/scaffold-eth";
 
 type UmbrellaSwapProps = {
   address?: string;
+  deposit: (amount: string) => Promise<void>;
 };
 
 /**
@@ -11,7 +12,7 @@ type UmbrellaSwapProps = {
  * @returns a component that allows the user to swap $UMB tokens
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const UmbrellaSwap: React.FC<UmbrellaSwapProps> = ({ address }) => {
+const UmbrellaSwap: React.FC<UmbrellaSwapProps> = ({ address, deposit }) => {
   const [action, setAction] = useState("Buy");
 
   const handleToggle = () => {
@@ -30,9 +31,11 @@ const UmbrellaSwap: React.FC<UmbrellaSwapProps> = ({ address }) => {
   const exceededBalance = parseInt(amount) > balance;
 
   // TODO: Implement swap function
-  const swap = () => {
+  const swap = async () => {
     if (action === "Buy") {
       console.log(`Buying ${amount} $UMB`);
+      await deposit(amount);
+      console.log("Deposit successful:", amount);
     } else {
       console.log(`Selling ${amount} $UMB`);
     }
