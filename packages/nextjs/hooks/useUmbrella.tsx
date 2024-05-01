@@ -4,6 +4,7 @@ import { useAccount, useBalance, useContractReads, useWriteContract } from "wagm
 import { PoolToken } from "~~/app/umbrella/_components/PoolTokens";
 
 const numberOfAssets = 5; // TODO fetch from contract, if possible
+const MAXUINT256 = 115792089237316195423570985008687907853269984665640564039457584007913129639935n;
 
 export interface Asset {
   priceFeed: string;
@@ -126,9 +127,21 @@ const useUmbrella = (umbrellaFundAddress: string) => {
   const deposit = async (amount: string) => {
     writeContract({
       address: umbrellaFundAddress,
-      abi,
+      abi: abi,
       functionName: "deposit",
       value: parseEther(amount),
+    });
+  };
+
+  /**
+   * Send approval for burning tokens
+   */
+  const approve = async () => {
+    writeContract({
+      address: tokenContract.address,
+      abi: tokenAbi,
+      functionName: "approve",
+      args: [umbrellaFundAddress, MAXUINT256],
     });
   };
 
@@ -138,7 +151,7 @@ const useUmbrella = (umbrellaFundAddress: string) => {
   const withdraw = async (amount: string) => {
     writeContract({
       address: umbrellaFundAddress,
-      abi,
+      abi: abi,
       functionName: "withdraw",
       args: [parseEther(amount)],
     });
@@ -147,7 +160,7 @@ const useUmbrella = (umbrellaFundAddress: string) => {
   const buyAsset = (amount: string, index: number) => {
     writeContract({
       address: umbrellaFundAddress,
-      abi,
+      abi: abi,
       functionName: "buyAsset",
       args: [parseEther(amount), index],
     });
@@ -156,7 +169,7 @@ const useUmbrella = (umbrellaFundAddress: string) => {
   const sellAsset = (index: number) => {
     writeContract({
       address: umbrellaFundAddress,
-      abi,
+      abi: abi,
       functionName: "sellAsset",
       args: [index],
     });
@@ -202,6 +215,7 @@ const useUmbrella = (umbrellaFundAddress: string) => {
     returnNAV,
     getAssets,
     deposit,
+    approve,
     withdraw,
     buyAsset,
     sellAsset,

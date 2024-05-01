@@ -6,6 +6,7 @@ import { EtherInput } from "~~/components/scaffold-eth";
 type UmbrellaSwapProps = {
   onBuy: (amount: string) => Promise<void>;
   onSell: (amount: string) => Promise<void>;
+  approve: () => Promise<void>;
   balanceUMB: bigint;
 };
 
@@ -17,7 +18,7 @@ type UmbrellaSwapProps = {
  * @returns a component that allows the user to swap $UMB tokens
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const UmbrellaSwap: React.FC<UmbrellaSwapProps> = ({ onBuy, onSell, balanceUMB }) => {
+const UmbrellaSwap: React.FC<UmbrellaSwapProps> = ({ onBuy, onSell, balanceUMB, approve }) => {
   const account = useAccount();
   const balance = useBalance(account);
   const [action, setAction] = useState("Buy");
@@ -35,14 +36,17 @@ const UmbrellaSwap: React.FC<UmbrellaSwapProps> = ({ onBuy, onSell, balanceUMB }
   const maxBalance = action === "Buy" ? formatEther(balance.data?.value || 0n) : formatEther(balanceUMB);
   const exceededBalance = parseFloat(amount) > parseFloat(maxBalance);
 
-  // TODO: Implement swap function
+  // TODO: onSell() should be executed after the approve() is correctly inserted in the blockchain
+  // TODO: Implement an allowance verification before asking for approval each time
   const swap = async () => {
     if (action === "Buy") {
       console.log(`Buying ${amount} $UMB`);
       await onBuy(amount);
     } else {
       console.log(`Selling ${amount} $UMB`);
-      await onSell(amount);
+      await approve().then(() => {
+        onSell(amount);
+      });
     }
   };
 
