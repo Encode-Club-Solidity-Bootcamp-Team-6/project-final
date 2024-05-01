@@ -163,6 +163,7 @@ const useUmbrella = (umbrellaFundAddress: string) => {
   };
 
   console.log(data);
+  console.log(dataToken);
 
   // Umbrella
   const purchaseRatio = data && data[0].status === "success" ? data[0].result.toString() : 0;
@@ -171,19 +172,25 @@ const useUmbrella = (umbrellaFundAddress: string) => {
   const totalSupply = data && data[3].status === "success" ? data[3].result : 0;
   const currentNAV = data && data[4].status === "success" ? data[4].result : 0; // current pool value
   const initialNAV = data && data[5].status === "success" ? data[5].result : 0; // initial pool value on buy
-  const returnNAV = data && data[6].status === "success" ? data[6].result : 0; // return on investment
+  const returnNAV = data && data[6].status === "success" ? data[6].result : "N/A"; // return on investment
   const tokenNames = data && data[7].status === "success" ? (data[7].result as string).split(",") : [];
   const tokenAmounts = data && data[8].status === "success" ? (data[8].result as string).split(",") : [];
   const tokenValues = data && data[9].status === "success" ? (data[9].result as string).split(",") : [];
 
   // Pool Token
   let tokens: PoolToken[] = [];
-  if (data && data[7].status === "success" && data[8].status === "success" && data[9].status === "success")
+  if (
+    data &&
+    data[7].status === "success" &&
+    tokenNames[0] !== "()" &&
+    data[8].status === "success" &&
+    data[9].status === "success"
+  )
     tokens = generatePoolTokens(tokenNames, tokenAmounts, tokenValues);
 
   // Token
   const ticker = dataToken && dataToken[0].status === "success" ? (dataToken[0].result as any).toString() : "Unknown";
-  const balance = dataToken && dataToken[1].status === "success" ? dataToken[1].result : 0;
+  const userBalanceUMB = dataToken && dataToken[1].status === "success" ? (dataToken[1].result as bigint) : 0n;
 
   return {
     purchaseRatio,
@@ -203,7 +210,7 @@ const useUmbrella = (umbrellaFundAddress: string) => {
     latestTxMessage,
     latestHash: hash,
     latestWriteError: error,
-    userBalance: balance, // UMB
+    userBalanceUMB,
     fundEthBalance,
     isError,
     isLoading: isLoading || isPending,
@@ -223,7 +230,6 @@ const generatePoolTokens = (names: string[], amounts: string[], values: string[]
   return tokens;
 };
 
-// TODO: outdated ABI
 const abi = [
   {
     inputs: [
@@ -355,45 +361,6 @@ const abi = [
     inputs: [
       {
         internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    name: "fundAssets",
-    outputs: [
-      {
-        internalType: "address",
-        name: "priceFeed",
-        type: "address",
-      },
-      {
-        internalType: "string",
-        name: "tokenName",
-        type: "string",
-      },
-      {
-        internalType: "uint256",
-        name: "tokens",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "initPrice",
-        type: "uint256",
-      },
-      {
-        internalType: "contract PriceConsumerV3",
-        name: "priceFeeder",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
         name: "index",
         type: "uint256",
       },
@@ -411,6 +378,11 @@ const abi = [
         type: "string",
       },
       {
+        internalType: "string",
+        name: "",
+        type: "string",
+      },
+      {
         internalType: "uint256",
         name: "",
         type: "uint256",
@@ -425,14 +397,21 @@ const abi = [
     type: "function",
   },
   {
-    inputs: [
+    inputs: [],
+    name: "getPaymentTokenAddress",
+    outputs: [
       {
-        internalType: "uint256",
-        name: "index",
-        type: "uint256",
+        internalType: "address",
+        name: "",
+        type: "address",
       },
     ],
-    name: "getCLPrice",
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getPurchaseRatio",
     outputs: [
       {
         internalType: "uint256",
@@ -444,19 +423,52 @@ const abi = [
     type: "function",
   },
   {
-    inputs: [
+    inputs: [],
+    name: "getTokenAmounts",
+    outputs: [
       {
-        internalType: "address",
-        name: "investor",
-        type: "address",
+        internalType: "string",
+        name: "",
+        type: "string",
       },
     ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getTokenNames",
+    outputs: [
+      {
+        internalType: "string",
+        name: "",
+        type: "string",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "getTokenShare",
     outputs: [
       {
         internalType: "uint256",
         name: "",
         type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getTokenValues",
+    outputs: [
+      {
+        internalType: "string",
+        name: "",
+        type: "string",
       },
     ],
     stateMutability: "view",
@@ -483,32 +495,6 @@ const abi = [
         internalType: "address",
         name: "",
         type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "paymentToken",
-    outputs: [
-      {
-        internalType: "contract UmbrellaToken",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "purchaseRatio",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
       },
     ],
     stateMutability: "view",
@@ -548,32 +534,18 @@ const abi = [
       },
       {
         internalType: "string",
-        name: "_tokenName",
+        name: "_tokenNum",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "_tokenDen",
         type: "string",
       },
     ],
     name: "setCLInitValues",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    name: "tokenShare",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
     type: "function",
   },
   {
@@ -590,13 +562,7 @@ const abi = [
     type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-    ],
+    inputs: [],
     name: "withdraw",
     outputs: [],
     stateMutability: "nonpayable",

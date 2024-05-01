@@ -23,6 +23,7 @@ const Home: NextPage = () => {
     latestWriteError,
     latestHash,
     latestTxMessage,
+    userBalanceUMB,
   } = useUmbrella("0xAdd171f041fa71F533Cec6Fe62BD935461F81401");
 
   useEffect(() => {
@@ -46,7 +47,7 @@ const Home: NextPage = () => {
           <div className="grid gap-8 grid-cols-2 grid-rows-2">
             <PoolTokens tokens={poolTokens} />
             <BuySellToken address={connectedAddress} />
-            <UmbrellaSwap onBuy={deposit} onSell={withdraw} />
+            <UmbrellaSwap onBuy={deposit} onSell={withdraw} balanceUMB={userBalanceUMB} />
             <UmbrellaVoting address={connectedAddress} />
           </div>
         </div>
