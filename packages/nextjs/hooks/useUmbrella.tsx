@@ -158,6 +158,8 @@ const useUmbrella = (umbrellaFundAddress: string) => {
     });
   };
 
+  console.log(data);
+
   // Umbrella
   const purchaseRatio = data && data[0].status === "success" ? data[0].result.toString() : 0;
   const paymentToken = data && data[1].status === "success" ? data[1].result : null;
