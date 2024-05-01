@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { parseEther } from "viem";
 import { useAccount, useContractReads, useWriteContract } from "wagmi";
+import { PoolToken } from "~~/app/umbrella/_components/PoolTokens";
 
 const numberOfAssets = 5; // TODO fetch from contract, if possible
 
@@ -158,6 +159,8 @@ const useUmbrella = (umbrellaFundAddress: string) => {
     });
   };
 
+  console.log(data);
+
   // Umbrella
   const purchaseRatio = data && data[0].status === "success" ? data[0].result.toString() : 0;
   const paymentToken = data && data[1].status === "success" ? data[1].result : null;
@@ -169,6 +172,11 @@ const useUmbrella = (umbrellaFundAddress: string) => {
   const tokenNames = data && data[7].status === "success" ? (data[7].result as string).split(",") : [];
   const tokenAmounts = data && data[8].status === "success" ? (data[8].result as string).split(",") : [];
   const tokenValues = data && data[9].status === "success" ? (data[9].result as string).split(",") : [];
+
+  // Pool Token
+  let tokens: PoolToken[] = [];
+  if (data && data[7].status === "success" && data[8].status === "success" && data[9].status === "success")
+    tokens = generatePoolTokens(tokenNames, tokenAmounts, tokenValues);
 
   // Token
   const ticker = dataToken && dataToken[0].status === "success" ? (dataToken[0].result as any).toString() : "Unknown";
@@ -187,9 +195,7 @@ const useUmbrella = (umbrellaFundAddress: string) => {
     withdraw,
     buyAsset,
     sellAsset,
-    tokenNames,
-    tokenAmounts,
-    tokenValues,
+    poolTokens: tokens,
     ticker,
     latestTxMessage,
     balance,
@@ -200,6 +206,18 @@ const useUmbrella = (umbrellaFundAddress: string) => {
 
 export default useUmbrella;
 
+const generatePoolTokens = (names: string[], amounts: string[], values: string[]): PoolToken[] => {
+  const tokens = names.map((name, index) => {
+    return {
+      name,
+      value: BigInt(values[index]),
+      amount: BigInt(amounts[index]),
+    };
+  });
+  return tokens;
+};
+
+// TODO: outdated ABI
 const abi = [
   {
     inputs: [

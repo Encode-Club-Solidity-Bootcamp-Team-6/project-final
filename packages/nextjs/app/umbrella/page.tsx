@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import BuySellToken from "./_components/BuySellTokens";
-import PoolTokens from "./_components/PoolTokens";
+import PoolTokens, { PoolToken } from "./_components/PoolTokens";
 import PoolValue from "./_components/PoolValue";
 import UmbrellaSwap from "./_components/UmbrellaSwap";
 import UmbrellaVoting from "./_components/UmbrellaVoting";
@@ -12,7 +12,7 @@ import useUmbrella from "~~/hooks/useUmbrella";
 
 const Home: NextPage = () => {
   const { address: connectedAddress } = useAccount();
-  const { currentNAV, getAssets } = useUmbrella("0xd7e9e516d57f071ba00de44bfd56b0ee9f2ab731");
+  const { currentNAV, getAssets, poolTokens } = useUmbrella("0xAdd171f041fa71F533Cec6Fe62BD935461F81401");
 
   return (
     <>
@@ -23,7 +23,7 @@ const Home: NextPage = () => {
 
         <div className="flex flex-wrap flex-col mt-10 gap-6 justify-center">
           <div className="grid gap-8 grid-cols-2 grid-rows-2">
-            <PoolTokens address={connectedAddress} />
+            <PoolTokens tokens={poolTokens} />
             <BuySellToken address={connectedAddress} />
             <UmbrellaSwap address={connectedAddress} />
             <UmbrellaVoting address={connectedAddress} />
