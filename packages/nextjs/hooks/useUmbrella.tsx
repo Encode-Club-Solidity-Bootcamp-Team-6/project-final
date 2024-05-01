@@ -120,7 +120,7 @@ const useUmbrella = (umbrellaFundAddress: string) => {
   /**
    * @param amount - The amount in ether to deposit
    */
-  const deposit = (amount: string) => {
+  const deposit = async (amount: string) => {
     writeContract({
       address: umbrellaFundAddress,
       abi,
@@ -132,7 +132,7 @@ const useUmbrella = (umbrellaFundAddress: string) => {
   /**
    * @param amount - The amount in ether to withdraw
    */
-  const withdraw = (amount: string) => {
+  const withdraw = async (amount: string) => {
     writeContract({
       address: umbrellaFundAddress,
       abi,
@@ -198,9 +198,11 @@ const useUmbrella = (umbrellaFundAddress: string) => {
     poolTokens: tokens,
     ticker,
     latestTxMessage,
+    latestHash: hash,
+    latestWriteError: error,
     balance,
     isError,
-    isLoading,
+    isLoading: isLoading || isPending,
   };
 };
 

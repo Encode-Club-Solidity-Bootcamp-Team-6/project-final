@@ -1,9 +1,9 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import BuySellToken from "./_components/BuySellTokens";
-import PoolTokens, { PoolToken } from "./_components/PoolTokens";
-import PoolValue from "./_components/PoolValue";
+import PoolTokens from "./_components/PoolTokens";
 import UmbrellaSwap from "./_components/UmbrellaSwap";
 import UmbrellaVoting from "./_components/UmbrellaVoting";
 import type { NextPage } from "next";
@@ -11,8 +11,29 @@ import { useAccount } from "wagmi";
 import useUmbrella from "~~/hooks/useUmbrella";
 
 const Home: NextPage = () => {
+  const [showNotification, setShowNotification] = useState(false);
   const { address: connectedAddress } = useAccount();
-  const { currentNAV, deposit, getAssets, poolTokens } = useUmbrella("0xAdd171f041fa71F533Cec6Fe62BD935461F81401");
+  const {
+    currentNAV,
+    deposit,
+    withdraw,
+    getAssets,
+    poolTokens,
+    isLoading,
+    latestWriteError,
+    latestHash,
+    latestTxMessage,
+  } = useUmbrella("0xAdd171f041fa71F533Cec6Fe62BD935461F81401");
+
+  useEffect(() => {
+    if (latestTxMessage) {
+      setShowNotification(true);
+      const timer = setTimeout(() => {
+        setShowNotification(false);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [latestTxMessage]);
 
   return (
     <>
@@ -25,10 +46,36 @@ const Home: NextPage = () => {
           <div className="grid gap-8 grid-cols-2 grid-rows-2">
             <PoolTokens tokens={poolTokens} />
             <BuySellToken address={connectedAddress} />
-            <UmbrellaSwap address={connectedAddress} deposit={deposit} />
+            <UmbrellaSwap onBuy={deposit} onSell={withdraw} />
             <UmbrellaVoting address={connectedAddress} />
           </div>
         </div>
+
+        {latestTxMessage && showNotification && (
+          <div
+            role="alert"
+            className={`alert ${
+              latestWriteError ? "alert-error" : latestHash ? "alert-success" : "alert-info"
+            } fixed top-5 right-5 max-w-md z-50`}
+          >
+            <div className="flex items-center">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                className="stroke-current shrink-0 w-6 h-6 mr-2"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                ></path>
+              </svg>
+              <span>{latestTxMessage}</span>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
