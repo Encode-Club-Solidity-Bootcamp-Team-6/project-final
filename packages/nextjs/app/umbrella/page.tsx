@@ -24,7 +24,7 @@ const Home: NextPage = () => {
     latestHash,
     latestTxMessage,
     userBalanceUMB,
-  } = useUmbrella("0xAdd171f041fa71F533Cec6Fe62BD935461F81401");
+  } = useUmbrella("0x3727D3aF2558fCd8e99fB5C51f782eE4B4bef09b");
 
   useEffect(() => {
     if (latestTxMessage) {

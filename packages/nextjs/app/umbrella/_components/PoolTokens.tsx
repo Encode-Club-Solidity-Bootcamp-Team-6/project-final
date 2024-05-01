@@ -2,7 +2,6 @@ import { ArcElement, Chart as ChartJS, Legend, Tooltip } from "chart.js";
 import { Doughnut } from "react-chartjs-2";
 import { formatEther } from "viem";
 import { CurrencyDollarIcon } from "@heroicons/react/24/outline";
-import { Asset } from "~~/hooks/useUmbrella";
 
 export interface PoolToken {
   name: string;
@@ -39,7 +38,7 @@ const PoolTokens: React.FC<PoolTokensProps> = ({ tokens }) => {
     datasets: [
       {
         label: "Tokens in Pool",
-        data: tokens.map(token => token.value),
+        data: tokens.map(token => parseInt(token.value.toString())),
         borderWidth: 1,
         backgroundColor: [
           "rgba(255, 99, 132, 0.2)",
