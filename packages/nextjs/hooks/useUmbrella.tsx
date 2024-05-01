@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { parseEther } from "viem";
-import { useAccount, useContractReads, useWriteContract } from "wagmi";
+import { useAccount, useBalance, useContractReads, useWriteContract } from "wagmi";
 import { PoolToken } from "~~/app/umbrella/_components/PoolTokens";
 
 const numberOfAssets = 5; // TODO fetch from contract, if possible
@@ -21,6 +21,9 @@ type ContractReadsOutput = {
 
 const useUmbrella = (umbrellaFundAddress: string) => {
   const account = useAccount();
+  const fundEthBalance = useBalance({
+    address: umbrellaFundAddress,
+  });
   const [latestTxMessage, setLatestTxMessage] = useState<string>("");
   const { data: hash, isPending, error, writeContract } = useWriteContract();
 
@@ -166,9 +169,9 @@ const useUmbrella = (umbrellaFundAddress: string) => {
   const paymentToken = data && data[1].status === "success" ? data[1].result : null;
   const tokenShare = data && data[2].status === "success" ? data[2].result : 0;
   const totalSupply = data && data[3].status === "success" ? data[3].result : 0;
-  const currentNAV = data && data[4].status === "success" ? data[4].result : 0;
-  const initialNAV = data && data[5].status === "success" ? data[5].result : 0;
-  const returnNAV = data && data[6].status === "success" ? data[6].result : 0;
+  const currentNAV = data && data[4].status === "success" ? data[4].result : 0; // current pool value
+  const initialNAV = data && data[5].status === "success" ? data[5].result : 0; // initial pool value on buy
+  const returnNAV = data && data[6].status === "success" ? data[6].result : 0; // return on investment
   const tokenNames = data && data[7].status === "success" ? (data[7].result as string).split(",") : [];
   const tokenAmounts = data && data[8].status === "success" ? (data[8].result as string).split(",") : [];
   const tokenValues = data && data[9].status === "success" ? (data[9].result as string).split(",") : [];
@@ -200,7 +203,8 @@ const useUmbrella = (umbrellaFundAddress: string) => {
     latestTxMessage,
     latestHash: hash,
     latestWriteError: error,
-    balance,
+    userBalance: balance, // UMB
+    fundEthBalance,
     isError,
     isLoading: isLoading || isPending,
   };
