@@ -12,7 +12,7 @@ import useUmbrella from "~~/hooks/useUmbrella";
 
 const Home: NextPage = () => {
   const { address: connectedAddress } = useAccount();
-  const { currentNAV, getAssets, poolTokens } = useUmbrella("0xAdd171f041fa71F533Cec6Fe62BD935461F81401");
+  const { currentNAV, deposit, getAssets, poolTokens } = useUmbrella("0xAdd171f041fa71F533Cec6Fe62BD935461F81401");
 
   return (
     <>
@@ -25,7 +25,7 @@ const Home: NextPage = () => {
           <div className="grid gap-8 grid-cols-2 grid-rows-2">
             <PoolTokens tokens={poolTokens} />
             <BuySellToken address={connectedAddress} />
-            <UmbrellaSwap address={connectedAddress} />
+            <UmbrellaSwap address={connectedAddress} deposit={deposit} />
             <UmbrellaVoting address={connectedAddress} />
           </div>
         </div>
