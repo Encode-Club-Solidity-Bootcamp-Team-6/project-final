@@ -1,5 +1,6 @@
 import { formatEther } from "viem";
 import { useBalance, useReadContract } from "wagmi";
+import { useGlobalState } from "~~/services/store/store";
 
 type UmbrellaFundProps = {
   address?: string;
@@ -26,14 +27,17 @@ const UmbrellaFund: React.FC<UmbrellaFundProps> = ({
   returnNAV,
   purchaseRatio,
 }) => {
+  const nativeCurrencyPrice = useGlobalState(state => state.nativeCurrencyPrice);
   const tokenBalance = useBalance({ address, token: tokenAddress });
   const balance = tokenBalance.data ? tokenBalance.data : { value: BigInt(0), symbol: "$UMB" };
+  const tvl = totalSupply * purchaseRatio;
   return (
     <div className="bg-base-100 p-10 rounded-xl col-start-1 col-end-3 grid grid-cols-3 gap-8">
       <div className="flex flex-col items-center justify-evenly">
         <div className="flex flex-col justify-center items-center">
           <h2 className="text-xl text-gray-300">Total Value Locked</h2>
-          <p className="text-2xl">{totalSupply * purchaseRatio} ETH</p>
+          <p className="text-2xl mb-0">{tvl} ETH</p>
+          <p className="text-2xl mt-2">{parseInt(tvl.toString()) * nativeCurrencyPrice} USD</p>
         </div>
         <div className="flex flex-col justify-center items-center">
           <h2 className="text-xl text-gray-300">Return on Investment</h2>
