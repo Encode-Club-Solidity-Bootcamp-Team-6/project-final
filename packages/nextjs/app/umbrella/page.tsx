@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import BuySellToken from "./_components/BuySellTokens";
 import PoolTokens from "./_components/PoolTokens";
+import UmbrellaFund from "./_components/UmbrellaFund";
 import UmbrellaSwap from "./_components/UmbrellaSwap";
 import UmbrellaVoting from "./_components/UmbrellaVoting";
 import type { NextPage } from "next";
@@ -14,7 +15,12 @@ const Home: NextPage = () => {
   const [showNotification, setShowNotification] = useState(false);
   const { address: connectedAddress } = useAccount();
   const {
+    purchaseRatio,
+    paymentToken,
+    totalSupply,
     currentNAV,
+    initialNAV,
+    returnNAV,
     deposit,
     approve,
     withdraw,
@@ -47,6 +53,15 @@ const Home: NextPage = () => {
 
         <div className="flex flex-wrap flex-col mt-10 gap-6 justify-center">
           <div className="grid gap-8 grid-cols-2 grid-rows-2">
+            <UmbrellaFund
+              address={connectedAddress}
+              tokenAddress={paymentToken}
+              totalSupply={totalSupply}
+              currentNAV={currentNAV}
+              initialNAV={initialNAV}
+              returnNAV={returnNAV}
+              purchaseRatio={purchaseRatio}
+            />
             <PoolTokens tokens={poolTokens} />
             <BuySellToken address={connectedAddress} buyAsset={buyAsset} />
             <UmbrellaSwap onBuy={deposit} onSell={withdraw} balanceUMB={userBalanceUMB} approve={approve} />
