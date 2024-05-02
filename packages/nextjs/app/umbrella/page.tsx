@@ -18,6 +18,7 @@ const Home: NextPage = () => {
     deposit,
     approve,
     withdraw,
+    buyAsset,
     getAssets,
     poolTokens,
     isLoading,
@@ -47,7 +48,7 @@ const Home: NextPage = () => {
         <div className="flex flex-wrap flex-col mt-10 gap-6 justify-center">
           <div className="grid gap-8 grid-cols-2 grid-rows-2">
             <PoolTokens tokens={poolTokens} />
-            <BuySellToken address={connectedAddress} />
+            <BuySellToken address={connectedAddress} buyAsset={buyAsset} />
             <UmbrellaSwap onBuy={deposit} onSell={withdraw} balanceUMB={userBalanceUMB} approve={approve} />
             <UmbrellaVoting address={connectedAddress} />
           </div>

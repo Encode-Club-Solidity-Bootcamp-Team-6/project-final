@@ -4,6 +4,7 @@ import { EtherInput } from "~~/components/scaffold-eth";
 
 type BuyTokenProps = {
   address?: string;
+  buyAsset: (amount: string, index: number) => Promise<void>;
 };
 
 /**
@@ -11,7 +12,7 @@ type BuyTokenProps = {
  * @param address - The address of the connected account
  * @returns a component that shows the current value of the pool in ether
  */
-const BuySellToken: React.FC<BuyTokenProps> = ({ address }) => {
+const BuySellToken: React.FC<BuyTokenProps> = ({ address, buyAsset }) => {
   const [token, setToken] = useState("AAVE");
   const [action, setAction] = useState("Buy");
   const [amount, setAmount] = useState("");
@@ -22,6 +23,16 @@ const BuySellToken: React.FC<BuyTokenProps> = ({ address }) => {
       return;
     }
     setAction("Buy");
+  };
+
+  const buySellAsset = async () => {
+    if (action === "Buy") {
+      console.log(`Buying ${amount} ${token}`);
+      await buyAsset(amount, 0);
+    } else {
+      console.log(`Selling ${amount} ${token}`);
+      // await sellAsset(index);
+    }
   };
 
   return (
@@ -61,7 +72,9 @@ const BuySellToken: React.FC<BuyTokenProps> = ({ address }) => {
         <span>{token}</span>
       </div>
 
-      <button className="btn btn-primary mt-4 w-40 self-center" onClick={() => {}}>
+      <button className="btn btn-primary mt-4 w-40 self-center"
+       onClick={buySellAsset}
+       disabled={parseFloat(amount) <= 0 || amount === ""} >
         {action}
       </button>
     </div>

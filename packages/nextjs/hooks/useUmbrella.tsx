@@ -148,7 +148,7 @@ const useUmbrella = (umbrellaFundAddress: string) => {
   /**
    * @param amount - The amount in ether to withdraw
    */
-  const withdraw = async (amount: string) => {
+   const withdraw = async (amount: string) => {
     writeContract({
       address: umbrellaFundAddress,
       abi: abi,
@@ -186,9 +186,18 @@ const useUmbrella = (umbrellaFundAddress: string) => {
   const currentNAV = data && data[4].status === "success" ? data[4].result : 0; // current pool value
   const initialNAV = data && data[5].status === "success" ? data[5].result : 0; // initial pool value on buy
   const returnNAV = data && data[6].status === "success" ? data[6].result : "N/A"; // return on investment
-  const tokenNames = data && data[7].status === "success" ? (data[7].result as string).split(",") : [];
-  const tokenAmounts = data && data[8].status === "success" ? (data[8].result as string).split(",") : [];
-  const tokenValues = data && data[9].status === "success" ? (data[9].result as string).split(",") : [];
+  const tokenNames =
+    data && data[7].status === "success"
+      ? (data[7].result as string).replaceAll("(", "").replaceAll(")", "").split(",")
+      : [];
+  const tokenAmounts =
+    data && data[8].status === "success"
+      ? (data[8].result as string).replaceAll("(", "").replaceAll(")", "").split(",")
+      : [];
+  const tokenValues =
+    data && data[9].status === "success"
+      ? (data[9].result as string).replaceAll("(", "").replaceAll(")", "").split(",")
+      : [];
 
   // Pool Token
   let tokens: PoolToken[] = [];
