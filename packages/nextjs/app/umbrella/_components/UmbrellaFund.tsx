@@ -1,5 +1,15 @@
+import { formatEther } from "viem";
+import { useBalance, useReadContract } from "wagmi";
+import { useGlobalState } from "~~/services/store/store";
+
 type UmbrellaFundProps = {
   address?: string;
+  tokenAddress: string;
+  totalSupply: bigint;
+  currentNAV: bigint;
+  initialNAV: bigint;
+  returnNAV: bigint;
+  purchaseRatio: bigint;
 };
 
 /**
@@ -8,49 +18,49 @@ type UmbrellaFundProps = {
  * @returns a component that shows the distribution of the Umbrella Fund
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const UmbrellaFund: React.FC<UmbrellaFundProps> = ({ address }) => {
+const UmbrellaFund: React.FC<UmbrellaFundProps> = ({
+  address,
+  tokenAddress,
+  totalSupply,
+  currentNAV,
+  initialNAV,
+  returnNAV,
+  purchaseRatio,
+}) => {
+  const nativeCurrencyPrice = useGlobalState(state => state.nativeCurrencyPrice);
+  const tokenBalance = useBalance({ address, token: tokenAddress });
+  const balance = tokenBalance.data ? tokenBalance.data : { value: BigInt(0), symbol: "$UMB" };
+  const tvl = totalSupply * purchaseRatio;
   return (
-    <div className="bg-blue-900 p-10 rounded-xl col-start-1 col-end-4 row-start-1 row-end-2 grid grid-cols-3 gap-8">
+    <div className="bg-base-100 p-10 rounded-xl col-start-1 col-end-3 grid grid-cols-3 gap-8">
       <div className="flex flex-col items-center justify-evenly">
         <div className="flex flex-col justify-center items-center">
           <h2 className="text-xl text-gray-300">Total Value Locked</h2>
-          {/* TODO */}
-          <p className="text-2xl">XXX ETH</p>
-        </div>
-        <div className="flex flex-col justify-center items-center">
-          <h2 className="text-xl text-gray-300">Number of Holders</h2>
-          {/* TODO */}
-          <p className="text-2xl">XXX,XXX</p>
+          <p className="text-2xl mb-0">{tvl} ETH</p>
+          <p className="text-2xl mt-2">{parseInt(tvl.toString()) * nativeCurrencyPrice} USD</p>
         </div>
         <div className="flex flex-col justify-center items-center">
           <h2 className="text-xl text-gray-300">Return on Investment</h2>
-          {/* TODO */}
-          <p className="text-2xl">+ XXX %</p>
+          <p className="text-2xl">+ {formatEther(currentNAV)} %</p>
         </div>
       </div>
       <div className="flex flex-col items-center justify-evenly">
         <div className="flex flex-col justify-center items-center">
-          <h2 className="text-xl">Fund Distribution</h2>
-          <p className="text-sm">See what ERC-20 tokens Umbrella Fund holds.</p>
+          <h2 className="text-xl text-gray-300">Total $UMB Supply</h2>
+          <p className="text-2xl">{totalSupply}</p>
         </div>
-        {/* TODO */}
-        <div className="w-[100%] h-[100%] bg-black text-center">Let&apos;s show some pie chart here</div>
       </div>
       <div className="flex flex-col items-center justify-evenly">
         <div className="flex flex-col justify-center items-center">
           <h2 className="text-xl text-gray-300">My Balance</h2>
-          {/* TODO */}
-          <p className="text-2xl">+ XXX %</p>
+          <p className="text-2xl">
+            {balance.value.toString()} {balance.symbol}
+          </p>
         </div>
         <div className="flex flex-col justify-center items-center">
           <h2 className="text-xl text-gray-300">Fund Allocation</h2>
-          {/* TODO */}
-          <p className="text-2xl">0.XX %</p>
-        </div>
-        <div className="flex flex-col justify-center items-center">
-          <h2 className="text-xl text-gray-300">Return on Investment</h2>
-          {/* TODO */}
-          <p className="text-2xl">+ XXX %</p>
+          {/* Divide the amount of tokens owned by the total supply */}
+          <p className="text-2xl">{(BigInt(totalSupply) / (balance.value + BigInt(1))).toString()} %</p>
         </div>
       </div>
     </div>
